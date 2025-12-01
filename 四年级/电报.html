@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>嘀嘀嗒嗒的秘密：电报与莫尔斯电码</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", "SimHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 标题区 */
+        .header {
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #4a90e2;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header p {
+            color: #f39c12;
+            font-size: 1.2em;
+        }
+
+        /* 卡片样式 */
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: #4a90e2;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #f39c12;
+            padding-bottom: 10px;
+        }
+
+        /* 电报机区域 */
+        .telegraph-area {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .telegraph-left {
+            flex: 1;
+            min-width: 280px;
+            text-align: center;
+        }
+
+        .telegraph-right {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        #telegraphKey {
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        #telegraphKey:active {
+            transform: translateY(3px);
+        }
+
+        .output-box {
+            background: #f8f9fa;
+            border: 3px solid #4a90e2;
+            border-radius: 15px;
+            padding: 20px;
+            min-height: 100px;
+            margin-bottom: 15px;
+        }
+
+        .output-label {
+            color: #4a90e2;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .output-content {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            word-wrap: break-word;
+            min-height: 40px;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-clear {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            margin-left: 10px;
+        }
+
+        /* SOS区域 */
+        .sos-area {
+            text-align: center;
+        }
+
+        .sos-hint {
+            color: #e74c3c;
+            font-size: 1.2em;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        /* 莫尔斯表格 */
+        .morse-table {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .morse-item {
+            background: linear-gradient(135deg, #e8f4fd, #d4e9f7);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .morse-item:hover {
+            transform: scale(1.05);
+        }
+
+        .morse-char {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4a90e2;
+            margin-bottom: 8px;
+        }
+
+        .morse-code {
+            font-size: 1.3em;
+            color: #e67e22;
+            font-weight: bold;
+            letter-spacing: 3px;
+        }
+
+        /* 测试区 */
+        .quiz-area {
+            text-align: center;
+        }
+
+        .quiz-display {
+            background: #fff3cd;
+            border: 3px solid #f39c12;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .quiz-options {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .quiz-btn {
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            padding: 15px 25px;
+            font-size: 1.2em;
+        }
+
+        .result {
+            font-size: 3em;
+            margin-top: 20px;
+            min-height: 60px;
+        }
+
+        /* 底部 */
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 15px;
+            font-size: 1.1em;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .telegraph-area {
+                flex-direction: column;
+            }
+
+            .morse-table {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 标题区 -->
+        <div class="header">
+            <h1>📡 嘀嘀嗒嗒的秘密：电报与莫尔斯电码</h1>
+            <p>✨ 小学生可视化互动学习页面 ✨</p>
+        </div>
+
+        <!-- 电报机展示区 -->
+        <div class="card">
+            <h2>🔧 电报机交互体验</h2>
+            <div class="telegraph-area">
+                <div class="telegraph-left">
+                    <p style="color: #4a90e2; font-size: 1.2em; margin-bottom: 15px;">
+                        <strong>按住电键试试！</strong><br>
+                        短按 = 点（·）长按 = 划（—）
+                    </p>
+                    <svg id="telegraphKey" width="200" height="200" viewBox="0 0 200 200">
+                        <defs>
+                            <linearGradient id="baseGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#8b7355;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#654321;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="keyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#daa520;stop-opacity:1" />
+                            </linearGradient>
+                            <filter id="shadow">
+                                <feDropShadow dx="0" dy="4" stdDeviation="3" flood-opacity="0.3"/>
+                            </filter>
+                        </defs>
+                        
+                        <!-- 底座 -->
+                        <rect x="20" y="140" width="160" height="40" rx="5" fill="url(#baseGrad)" filter="url(#shadow)"/>
+                        
+                        <!-- 电键支架 -->
+                        <rect x="80" y="120" width="40" height="25" rx="3" fill="#8b7355"/>
+                        
+                        <!-- 电键按钮 -->
+                        <g id="keyButton">
+                            <ellipse cx="100" cy="80" rx="45" ry="35" fill="url(#keyGrad)" filter="url(#shadow)"/>
+                            <ellipse cx="100" cy="75" rx="35" ry="25" fill="#ffed4e"/>
+                            <text x="100" y="85" text-anchor="middle" font-size="24" font-weight="bold" fill="#d4a017">按我</text>
+                        </g>
+                        
+                        <!-- 装饰螺丝 -->
+                        <circle cx="40" cy="160" r="5" fill="#444"/>
+                        <circle cx="160" cy="160" r="5" fill="#444"/>
+                    </svg>
+                </div>
+                
+                <div class="telegraph-right">
+                    <div class="output-box">
+                        <div class="output-label">点划序列：</div>
+                        <div class="output-content" id="morseOutput">等待输入...</div>
+                    </div>
+                    <div class="output-box">
+                        <div class="output-label">翻译结果：</div>
+                        <div class="output-content" id="textOutput"></div>
+                    </div>
+                    <button class="btn" onclick="clearOutput()">🗑️ 清空</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SOS演示区 -->
+        <div class="card">
+            <h2>🆘 一键发送 SOS 求救信号</h2>
+            <div class="sos-area">
+                <button class="btn" onclick="playSOS()">📻 播放 SOS（··· --- ···）</button>
+                <p class="sos-hint">💡 这是世界通用的求救信号！</p>
+            </div>
+        </div>
+
+        <!-- 莫尔斯电码对照表 -->
+        <div class="card">
+            <h2>📋 莫尔斯电码对照表</h2>
+            <div class="morse-table" id="morseTable"></div>
+        </div>
+
+        <!-- 小测试区 -->
+        <div class="card">
+            <h2>🎮 互动小测试</h2>
+            <div class="quiz-area">
+                <button class="btn quiz-btn" onclick="startQuiz1()">🎯 测试1：看字母敲电码</button>
+                <button class="btn quiz-btn" onclick="startQuiz2()">🔍 测试2：看电码猜字母</button>
+                
+                <div class="quiz-display" id="quizDisplay">点击上方按钮开始测试！</div>
+                
+                <div class="quiz-options" id="quizOptions"></div>
+                
+                <div class="result" id="result"></div>
+                
+                <button class="btn btn-clear" onclick="resetQuiz()" style="margin-top: 15px;">🔄 重新开始</button>
+            </div>
+        </div>
+
+        <!-- 底部 -->
+        <div class="footer">
+            📚 本页面用于小学科学与信息技术课程《嘀嘀嗒嗒的秘密》电报与莫尔斯电码原理演示。
+        </div>
+    </div>
+
+    <script>
+        // 莫尔斯电码字典
+        const morseCode = {
+            'A': '·—', 'B': '—···', 'C': '—·—·', 'D': '—··', 'E': '·',
+            'F': '··—·', 'G': '——·', 'H': '····', 'I': '··', 'J': '·———',
+            'K': '—·—', 'L': '·—··', 'M': '——', 'N': '—·', 'O': '———',
+            'P': '·——·', 'Q': '——·—', 'R': '·—·', 'S': '···', 'T': '—',
+            'U': '··—', 'V': '···—', 'W': '·——', 'X': '—··—', 'Y': '—·——',
+            'Z': '——··',
+            '0': '—————', '1': '·————', '2': '··———', '3': '···——', '4': '····—',
+            '5': '·····', '6': '—····', '7': '——···', '8': '———··', '9': '————·'
+        };
+
+        // 反向字典
+        const reverseMorse = {};
+        for (let key in morseCode) {
+            reverseMorse[morseCode[key]] = key;
+        }
+
+        // WebAudio设置
+        let audioContext;
+        let pressStartTime = 0;
+        let currentMorse = '';
+
+        // 初始化AudioContext
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // 播放蜂鸣声
+        function playBeep(duration) {
+            initAudio();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 1000;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        // 电键事件处理
+        const keyElement = document.getElementById('telegraphKey');
+        const keyButton = document.getElementById('keyButton');
+
+        function onKeyDown(e) {
+            e.preventDefault();
+            pressStartTime = Date.now();
+            keyButton.style.transform = 'translate(0, 5px)';
+            playBeep(0.8);
+        }
+
+        function onKeyUp(e) {
+            e.preventDefault();
+            const duration = Date.now() - pressStartTime;
+            keyButton.style.transform = 'translate(0, 0)';
+            
+            if (duration < 300) {
+                addMorse('·');
+            } else {
+                addMorse('—');
+            }
+        }
+
+        keyElement.addEventListener('mousedown', onKeyDown);
+        keyElement.addEventListener('mouseup', onKeyUp);
+        keyElement.addEventListener('touchstart', onKeyDown);
+        keyElement.addEventListener('touchend', onKeyUp);
+
+        // 添加点划
+        function addMorse(symbol) {
+            currentMorse += symbol;
+            document.getElementById('morseOutput').textContent = currentMorse;
+            
+            // 尝试翻译
+            const words = currentMorse.split(' ');
+            let translated = '';
+            for (let word of words) {
+                if (word === '') continue;
+                const letters = word.split('  ');
+                for (let letter of letters) {
+                    if (reverseMorse[letter]) {
+                        translated += reverseMorse[letter];
+                    }
+                }
+                translated += ' ';
+            }
+            document.getElementById('textOutput').textContent = translated;
+        }
+
+        // 清空输出
+        function clearOutput() {
+            currentMorse = '';
+            document.getElementById('morseOutput').textContent = '等待输入...';
+            document.getElementById('textOutput').textContent = '';
+        }
+
+        // 播放SOS
+        async function playSOS() {
+            initAudio();
+            const sosPattern = ['·', '·', '·', ' ', '—', '—', '—', ' ', '·', '·', '·'];
+            currentMorse = '';
+            
+            for (let i = 0; i < sosPattern.length; i++) {
+                const symbol = sosPattern[i];
+                if (symbol === ' ') {
+                    await sleep(200);
+                } else {
+                    currentMorse += symbol;
+                    document.getElementById('morseOutput').textContent = currentMorse;
+                    
+                    if (symbol === '·') {
+                        playBeep(0.12);
+                        await sleep(150);
+                    } else {
+                        playBeep(0.6);
+                        await sleep(650);
+                    }
+                }
+            }
+            
+            document.getElementById('textOutput').textContent = 'SOS';
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // 生成莫尔斯表格
+        function generateMorseTable() {
+            const table = document.getElementById('morseTable');
+            for (let char in morseCode) {
+                const item = document.createElement('div');
+                item.className = 'morse-item';
+                item.innerHTML = `
+                    <div class="morse-char">${char}</div>
+                    <div class="morse-code">${morseCode[char]}</div>
+                `;
+                table.appendChild(item);
+            }
+        }
+
+        // 测试1：看字母敲电码
+        let quiz1Target = '';
+        let quiz1Input = '';
+
+        function startQuiz1() {
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            quiz1Target = letters[Math.floor(Math.random() * letters.length)];
+            quiz1Input = '';
+            
+            document.getElementById('quizDisplay').innerHTML = `
+                请按电键输入字母 <strong style="color: #e74c3c; font-size: 1.5em;">${quiz1Target}</strong> 的莫尔斯电码<br>
+                <span style="color: #7f8c8d; font-size: 0.8em;">（提示：${morseCode[quiz1Target]}）</span>
+            `;
+            document.getElementById('quizOptions').innerHTML = `
+                <button class="btn" onclick="submitQuiz1()">✅ 提交答案</button>
+            `;
+            document.getElementById('result').textContent = '';
+            clearOutput();
+        }
+
+        function submitQuiz1() {
+            const userInput = document.getElementById('morseOutput').textContent.trim();
+            if (userInput === morseCode[quiz1Target]) {
+                document.getElementById('result').innerHTML = '😊 正确！';
+                document.getElementById('result').style.color = '#27ae60';
+            } else {
+                document.getElementById('result').innerHTML = '😢 再试试吧！';
+                document.getElementById('result').style.color = '#e74c3c';
+            }
+        }
+
+        // 测试2：看电码猜字母
+        let quiz2Target = '';
+
+        function startQuiz2() {
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            quiz2Target = letters[Math.floor(Math.random() * letters.length)];
+            
+            document.getElementById('quizDisplay').innerHTML = `
+                这串电码是哪个字母？<br>
+                <strong style="color: #e67e22; font-size: 1.8em;">${morseCode[quiz2Target]}</strong>
+            `;
+            
+            // 生成4个选项
+            const options = [quiz2Target];
+            while (options.length < 4) {
+                const randomLetter = letters[Math.floor(Math.random() * letters.length)];
+                if (!options.includes(randomLetter)) {
+                    options.push(randomLetter);
+                }
+            }
+            
+            // 打乱选项
+            options.sort(() => Math.random() - 0.5);
+            
+            const optionsHtml = options.map(letter => 
+                `<button class="btn quiz-btn" onclick="checkQuiz2('${letter}')">${letter}</button>`
+            ).join('');
+            
+            document.getElementById('quizOptions').innerHTML = optionsHtml;
+            document.getElementById('result').textContent = '';
+        }
+
+        function checkQuiz2(answer) {
+            if (answer === quiz2Target) {
+                document.getElementById('result').innerHTML = '🎉 答对了！';
+                document.getElementById('result').style.color = '#27ae60';
+            } else {
+                document.getElementById('result').innerHTML = '😅 答错了，再想想！';
+                document.getElementById('result').style.color = '#e74c3c';
+            }
+        }
+
+        function resetQuiz() {
+            document.getElementById('quizDisplay').textContent = '点击上方按钮开始测试！';
+            document.getElementById('quizOptions').innerHTML = '';
+            document.getElementById('result').textContent = '';
+        }
+
+        // 页面加载完成后初始化
+        window.onload = function() {
+            generateMorseTable();
+        };
+    </script>
+</body>
+</html>
