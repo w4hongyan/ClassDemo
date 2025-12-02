@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二分法查找 - 互动学习</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #f0f0f0;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            background: #f8f9fa;
+            border: none;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s;
+            color: #666;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .example-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #667eea;
+        }
+
+        .example-box h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .example-box p {
+            line-height: 1.8;
+            color: #444;
+            margin-bottom: 10px;
+        }
+
+        .visualization {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #e9ecef;
+        }
+
+        .number-line {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin: 30px 0;
+            position: relative;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            min-height: 70px;
+        }
+
+        .number-box {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.2em;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                border-radius: 10px;
+                margin-bottom: 5px;
+            }
+            
+            .stat-box {
+                min-width: 120px;
+                padding: 15px;
+            }
+            
+            .visualization {
+                padding: 15px;
+            }
+            
+            .number-box {
+                width: 40px;
+                height: 40px;
+                font-size: 1em;
+            }
+        }
+
+        .number-box.eliminated {
+            background: #ffebee;
+            border-color: #ef5350;
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+
+        .number-box.checking {
+            background: #fff3e0;
+            border-color: #ff9800;
+            transform: scale(1.2);
+            box-shadow: 0 5px 15px rgba(255,152,0,0.4);
+        }
+
+        .number-box.found {
+            background: #e8f5e9;
+            border-color: #4caf50;
+            transform: scale(1.2);
+            box-shadow: 0 5px 15px rgba(76,175,80,0.4);
+        }
+
+        .game-area {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .input-group {
+            margin: 20px 0;
+        }
+
+        .input-group input {
+            padding: 15px;
+            font-size: 1.2em;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            width: 200px;
+            text-align: center;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            font-size: 1.1em;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            min-width: 150px;
+            text-align: center;
+            margin: 10px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .hint {
+            font-size: 1.5em;
+            color: #667eea;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .log {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .log-item {
+            padding: 8px;
+            margin: 5px 0;
+            border-left: 3px solid #667eea;
+            padding-left: 15px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+
+        .comparison-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .comparison-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .highlight {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .icon {
+            display: inline-block;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 二分法查找互动学习</h1>
+        <p class="subtitle">像查字典一样快速找到答案！</p>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('principle')">📚 什么是二分法</button>
+            <button class="tab" onclick="switchTab('demo')">🎯 动态演示</button>
+            <button class="tab" onclick="switchTab('game')">🎮 猜数字游戏</button>
+            <button class="tab" onclick="switchTab('examples')">🌟 生活中的例子</button>
+        </div>
+
+        <div id="principle" class="tab-content active">
+            <div class="example-box">
+                <h3>🤔 什么是二分法？</h3>
+                <p>二分法就像猜数字游戏中的聪明策略：每次都猜中间的数，根据"大了"还是"小了"的提示，排除一半的可能性！</p>
+                <p><strong>核心思想：</strong>把搜索范围不断缩小一半，直到找到目标。</p>
+            </div>
+
+            <div class="visualization">
+                <h3 style="text-align: center; color: #667eea;">二分法 VS 顺序查找</h3>
+                <table class="comparison-table">
+                    <tr>
+                        <th>查找方法</th>
+                        <th>描述</th>
+                        <th>查找1-100中的数字需要次数</th>
+                    </tr>
+                    <tr>
+                        <td><span class="highlight">顺序查找</span></td>
+                        <td>从头到尾一个一个找</td>
+                        <td>最多需要 <span class="highlight">100次</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="highlight">二分查找</span></td>
+                        <td>每次排除一半可能性</td>
+                        <td>最多只需要 <span class="highlight">7次</span>！</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="example-box">
+                <h3>💡 为什么二分法这么快？</h3>
+                <p>假设有1000本书，用二分法只需要10次就能找到！</p>
+                <p>1000 → 500 → 250 → 125 → 63 → 32 → 16 → 8 → 4 → 2 → 1 ✓</p>
+            </div>
+        </div>
+
+        <div id="examples" class="tab-content">
+            <div class="example-box">
+                <h3>📖 例子1：查字典</h3>
+                <p><strong>问题：</strong>在字典里找"计算机"这个词</p>
+                <p><strong>二分法策略：</strong></p>
+                <p>1. 先翻到字典中间，看到的是"M"开头的字</p>
+                <p>2. "计"的拼音是"ji"，在"M"前面，所以往前翻</p>
+                <p>3. 再翻到前半部分的中间，继续比较</p>
+                <p>4. 重复这个过程，很快就能找到！</p>
+                <p>💡 <em>如果从第一页开始一页页翻，要翻很久！</em></p>
+            </div>
+
+            <div class="example-box">
+                <h3>📦 例子2：查快递</h3>
+                <p><strong>场景：</strong>快递站有1000个包裹，按单号排序</p>
+                <p><strong>你的快递单号：</strong>668888</p>
+                <p><strong>二分法查找：</strong></p>
+                <p>1. 先看中间位置的包裹（单号约500000）→ 你的更大，在后半部分</p>
+                <p>2. 再看后半部分的中间（单号约750000）→ 你的更小，在前面</p>
+                <p>3. 继续在中间查找，几次就找到668888了！</p>
+            </div>
+
+            <div class="example-box">
+                <h3>🐛 例子3：调试程序</h3>
+                <p><strong>问题：</strong>一个有1000行代码的程序出错了，哪一行有bug？</p>
+                <p><strong>二分法调试：</strong></p>
+                <p>1. 先测试第500行，看看前半部分对不对</p>
+                <p>2. 如果前半部分正常，说明bug在后半部分</p>
+                <p>3. 再测试第750行，继续缩小范围</p>
+                <p>4. 最多10次就能定位到出错的那一行！</p>
+                <p>💡 <em>程序员们经常用这个方法找bug呢！</em></p>
+            </div>
+
+            <div class="example-box">
+                <h3>🎯 例子4：猜价格游戏</h3>
+                <p><strong>游戏规则：</strong>商品价格在1-1000元之间，猜中就赢</p>
+                <p><strong>聪明的策略（二分法）：</strong></p>
+                <p>• 第1次猜：500元 → "太低了"</p>
+                <p>• 第2次猜：750元 → "太高了"</p>
+                <p>• 第3次猜：625元 → "太低了"</p>
+                <p>• 第4次猜：688元 → "猜中了！"</p>
+                <p>只用4次就猜中了！如果从1开始一个个猜，可能要猜几百次！</p>
+            </div>
+        </div>
+
+        <div id="demo" class="tab-content">
+            <h2 style="text-align: center; color: #667eea;">🎯 动态演示：在1-100中查找数字</h2>
+            
+            <div class="visualization">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <label>要查找的数字：</label>
+                    <input type="number" id="targetNumber" min="1" max="100" value="56" style="width: 100px; padding: 10px; font-size: 1.1em; border: 2px solid #667eea; border-radius: 5px;">
+                    <button class="btn" onclick="startDemo()">开始演示</button>
+                </div>
+
+                <div class="number-line" id="numberLine"></div>
+
+                <div class="stats" id="demoStats">
+                    <div class="stat-box">
+                        <div class="stat-label">当前范围</div>
+                        <div class="stat-value" id="rangeDisplay">1-100</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">已查找次数</div>
+                        <div class="stat-value" id="stepCount">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">剩余可能</div>
+                        <div class="stat-value" id="remaining">100</div>
+                    </div>
+                </div>
+
+                <div class="hint" id="demoHint">点击"开始演示"看二分法如何工作！</div>
+
+                <div class="log" id="demoLog"></div>
+            </div>
+        </div>
+
+        <div id="game" class="tab-content">
+            <div class="game-area">
+                <h2 style="color: #667eea;">🎮 猜数字游戏</h2>
+                <p>我想了一个1到100之间的数字，你能用二分法快速猜中吗？</p>
+
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-label">当前范围</div>
+                        <div class="stat-value" id="gameRange">1-100</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">已猜次数</div>
+                        <div class="stat-value" id="guessCount">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">建议猜</div>
+                        <div class="stat-value" id="suggestion">50</div>
+                    </div>
+                </div>
+
+                <div class="hint" id="gameHint">开始游戏，试试用二分法猜数字！</div>
+
+                <div class="input-group">
+                    <input type="number" id="guessInput" min="1" max="100" placeholder="输入你的猜测">
+                    <button class="btn" onclick="makeGuess()">猜!</button>
+                    <button class="btn" onclick="startGame()">新游戏</button>
+                </div>
+
+                <div class="log" id="gameLog"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let demoTarget = 56;
+        let demoStep = 0;
+        let demoLeft = 1;
+        let demoRight = 100;
+        let demoTimeout;
+
+        let gameSecret;
+        let gameMin = 1;
+        let gameMax = 100;
+        let gameGuesses = 0;
+        let gameHistory = [];
+
+        function switchTab(tabName) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        function initNumberLine() {
+            const line = document.getElementById('numberLine');
+            line.innerHTML = '';
+            for (let i = 1; i <= 100; i++) {
+                const box = document.createElement('div');
+                box.className = 'number-box';
+                box.id = 'box-' + i;
+                box.textContent = i;
+                line.appendChild(box);
+            }
+        }
+
+        function addDemoLog(message) {
+            const log = document.getElementById('demoLog');
+            const item = document.createElement('div');
+            item.className = 'log-item';
+            item.textContent = message;
+            log.insertBefore(item, log.firstChild);
+        }
+
+        function startDemo() {
+            demoTarget = parseInt(document.getElementById('targetNumber').value);
+            if (demoTarget < 1 || demoTarget > 100) {
+                alert('请输入1-100之间的数字！');
+                return;
+            }
+
+            demoStep = 0;
+            demoLeft = 1;
+            demoRight = 100;
+            
+            initNumberLine();
+            document.getElementById('demoLog').innerHTML = '';
+            document.getElementById('demoHint').textContent = '开始查找数字 ' + demoTarget + '...';
+            document.getElementById('stepCount').textContent = '0';
+            document.getElementById('rangeDisplay').textContent = '1-100';
+            document.getElementById('remaining').textContent = '100';
+
+            addDemoLog('目标数字：' + demoTarget + '，开始二分查找...');
+            
+            setTimeout(demoStep1, 1000);
+        }
+
+        function demoStep1() {
+            if (demoLeft > demoRight) return;
+
+            demoStep++;
+            const mid = Math.floor((demoLeft + demoRight) / 2);
+            
+            document.getElementById('stepCount').textContent = demoStep;
+            document.getElementById('rangeDisplay').textContent = demoLeft + '-' + demoRight;
+            document.getElementById('remaining').textContent = (demoRight - demoLeft + 1);
+
+            const box = document.getElementById('box-' + mid);
+            box.classList.add('checking');
+            document.getElementById('demoHint').textContent = '第' + demoStep + '步：检查中间位置 ' + mid;
+            addDemoLog('第' + demoStep + '步：检查 ' + mid + '（范围：' + demoLeft + '-' + demoRight + '）');
+
+            setTimeout(() => {
+                box.classList.remove('checking');
+                
+                if (mid === demoTarget) {
+                    box.classList.add('found');
+                    document.getElementById('demoHint').textContent = '🎉 找到了！数字 ' + demoTarget + ' 只用了 ' + demoStep + ' 步！';
+                    addDemoLog('✓ 找到目标数字 ' + demoTarget + '！总共用了 ' + demoStep + ' 步');
+                } else if (mid < demoTarget) {
+                    for (let i = demoLeft; i <= mid; i++) {
+                        document.getElementById('box-' + i).classList.add('eliminated');
+                    }
+                    addDemoLog('  → ' + mid + ' 比目标小，排除左半部分 ' + demoLeft + '-' + mid);
+                    demoLeft = mid + 1;
+                    setTimeout(demoStep1, 1500);
+                } else {
+                    for (let i = mid; i <= demoRight; i++) {
+                        document.getElementById('box-' + i).classList.add('eliminated');
+                    }
+                    addDemoLog('  → ' + mid + ' 比目标大，排除右半部分 ' + mid + '-' + demoRight);
+                    demoRight = mid - 1;
+                    setTimeout(demoStep1, 1500);
+                }
+            }, 1000);
+        }
+
+        function startGame() {
+            gameSecret = Math.floor(Math.random() * 100) + 1;
+            gameMin = 1;
+            gameMax = 100;
+            gameGuesses = 0;
+            gameHistory = [];
+
+            document.getElementById('guessCount').textContent = '0';
+            document.getElementById('gameRange').textContent = '1-100';
+            document.getElementById('suggestion').textContent = '50';
+            document.getElementById('gameHint').textContent = '开始游戏！我已经想好一个数字了，试试用二分法猜猜看！';
+            document.getElementById('gameLog').innerHTML = '';
+            document.getElementById('guessInput').value = '';
+            document.getElementById('guessInput').disabled = false;
+        }
+
+        function makeGuess() {
+            const input = document.getElementById('guessInput');
+            const guess = parseInt(input.value);
+
+            if (isNaN(guess) || guess < gameMin || guess > gameMax) {
+                alert('请输入' + gameMin + '到' + gameMax + '之间的数字！');
+                return;
+            }
+
+            gameGuesses++;
+            gameHistory.push(guess);
+
+            const log = document.getElementById('gameLog');
+            const item = document.createElement('div');
+            item.className = 'log-item';
+
+            if (guess === gameSecret) {
+                item.textContent = '🎉 第' + gameGuesses + '次：猜 ' + guess + ' → 恭喜你猜对了！';
+                item.style.color = '#4caf50';
+                item.style.fontWeight = 'bold';
+                log.insertBefore(item, log.firstChild);
+
+                document.getElementById('gameHint').textContent = '🏆 太棒了！你用 ' + gameGuesses + ' 次就猜中了！' + 
+                    (gameGuesses <= 7 ? '你掌握了二分法的精髓！' : '再试试看能不能用更少的次数？');
+                document.getElementById('guessInput').disabled = true;
+            } else if (guess < gameSecret) {
+                item.textContent = '第' + gameGuesses + '次：猜 ' + guess + ' → 太小了！';
+                log.insertBefore(item, log.firstChild);
+                gameMin = guess + 1;
+                
+                const newSuggestion = Math.floor((gameMin + gameMax) / 2);
+                document.getElementById('gameRange').textContent = gameMin + '-' + gameMax;
+                document.getElementById('suggestion').textContent = newSuggestion;
+                document.getElementById('gameHint').textContent = '提示：数字在 ' + gameMin + ' 到 ' + gameMax + ' 之间，建议猜 ' + newSuggestion;
+            } else {
+                item.textContent = '第' + gameGuesses + '次：猜 ' + guess + ' → 太大了！';
+                log.insertBefore(item, log.firstChild);
+                gameMax = guess - 1;
+                
+                const newSuggestion = Math.floor((gameMin + gameMax) / 2);
+                document.getElementById('gameRange').textContent = gameMin + '-' + gameMax;
+                document.getElementById('suggestion').textContent = newSuggestion;
+                document.getElementById('gameHint').textContent = '提示：数字在 ' + gameMin + ' 到 ' + gameMax + ' 之间，建议猜 ' + newSuggestion;
+            }
+
+            document.getElementById('guessCount').textContent = gameGuesses;
+            input.value = '';
+        }
+
+        document.getElementById('guessInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                makeGuess();
+            }
+        });
+
+        initNumberLine();
+        startGame();
+    </script>
+</body>
+</html>
