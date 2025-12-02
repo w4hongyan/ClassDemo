@@ -156,7 +156,7 @@
         /* 莫尔斯表格 */
         .morse-table {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             gap: 15px;
             margin-top: 20px;
         }
@@ -182,7 +182,7 @@
         }
 
         .morse-code {
-            font-size: 1.3em;
+            font-size: 0.8em;
             color: #e67e22;
             font-weight: bold;
             letter-spacing: 3px;
@@ -224,6 +224,28 @@
             min-height: 60px;
         }
 
+        /* 互动功能区 */
+        .interactive-area {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .sos-section,
+        .quiz-section {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .sos-section h3,
+        .quiz-section h3 {
+            color: #4a90e2;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #f39c12;
+            padding-bottom: 8px;
+        }
+
         /* 底部 */
         .footer {
             text-align: center;
@@ -247,6 +269,10 @@
             .morse-table {
                 grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             }
+
+            .interactive-area {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -258,7 +284,13 @@
             <p>✨ 小学生可视化互动学习页面 ✨</p>
         </div>
 
-        <!-- 电报机展示区 -->
+      
+ <!-- 莫尔斯电码对照表 -->
+        <div class="card">
+            <h2>📋 莫尔斯电码对照表</h2>
+            <div class="morse-table" id="morseTable"></div>
+        </div>
+  <!-- 电报机展示区 -->
         <div class="card">
             <h2>🔧 电报机交互体验</h2>
             <div class="telegraph-area">
@@ -314,36 +346,35 @@
                 </div>
             </div>
         </div>
-
-        <!-- SOS演示区 -->
+        <!-- SOS演示区和小测试区并排展示 -->
         <div class="card">
-            <h2>🆘 一键发送 SOS 求救信号</h2>
-            <div class="sos-area">
-                <button class="btn" onclick="playSOS()">📻 播放 SOS（··· --- ···）</button>
-                <p class="sos-hint">💡 这是世界通用的求救信号！</p>
-            </div>
-        </div>
-
-        <!-- 莫尔斯电码对照表 -->
-        <div class="card">
-            <h2>📋 莫尔斯电码对照表</h2>
-            <div class="morse-table" id="morseTable"></div>
-        </div>
-
-        <!-- 小测试区 -->
-        <div class="card">
-            <h2>🎮 互动小测试</h2>
-            <div class="quiz-area">
-                <button class="btn quiz-btn" onclick="startQuiz1()">🎯 测试1：看字母敲电码</button>
-                <button class="btn quiz-btn" onclick="startQuiz2()">🔍 测试2：看电码猜字母</button>
+            <h2>🎮 互动功能区</h2>
+            <div class="interactive-area">
+                <!-- SOS演示区 -->
+                <div class="sos-section">
+                    <h3>🆘 一键发送 SOS 求救信号</h3>
+                    <div class="sos-area">
+                        <button class="btn" onclick="playSOS()">📻 播放 SOS（··· --- ···）</button>
+                        <p class="sos-hint">💡 这是世界通用的求救信号！</p>
+                    </div>
+                </div>
                 
-                <div class="quiz-display" id="quizDisplay">点击上方按钮开始测试！</div>
-                
-                <div class="quiz-options" id="quizOptions"></div>
-                
-                <div class="result" id="result"></div>
-                
-                <button class="btn btn-clear" onclick="resetQuiz()" style="margin-top: 15px;">🔄 重新开始</button>
+                <!-- 小测试区 -->
+                <div class="quiz-section">
+                    <h3>🎮 互动小测试</h3>
+                    <div class="quiz-area">
+                        <button class="btn quiz-btn" onclick="startQuiz1()">🎯 测试1：看字母敲电码</button>
+                        <button class="btn quiz-btn" onclick="startQuiz2()">🔍 测试2：看电码猜字母</button>
+                        
+                        <div class="quiz-display" id="quizDisplay">点击上方按钮开始测试！</div>
+                        
+                        <div class="quiz-options" id="quizOptions"></div>
+                        
+                        <div class="result" id="result"></div>
+                        
+                        <button class="btn btn-clear" onclick="resetQuiz()" style="margin-top: 15px;">🔄 重新开始</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -544,7 +575,7 @@
             
             document.getElementById('quizDisplay').innerHTML = `
                 这串电码是哪个字母？<br>
-                <strong style="color: #e67e22; font-size: 1.8em;">${morseCode[quiz2Target]}</strong>
+                <strong style="color: #e67e22; font-size: 1.8em;letter-spacing: 3px;">${morseCode[quiz2Target]}</strong>
             `;
             
             // 生成4个选项
