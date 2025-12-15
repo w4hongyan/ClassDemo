@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>四年级第12课：有趣的二进制黑白图像</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --accent-color: #ff9f43;
+            --bg-color: #f0f4f8;
+            --text-color: #333;
+        }
+        
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1, h2, h3 {
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .concept-box {
+            background-color: #e8f4fd;
+            border-left: 5px solid var(--primary-color);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        /* 像素画通用样式 */
+        .pixel-grid {
+            display: grid;
+            gap: 2px;
+            margin: 20px auto;
+            background-color: #ddd;
+            border: 2px solid #333;
+            width: fit-content;
+        }
+
+        .pixel {
+            width: 30px;
+            height: 30px;
+            background-color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #ccc;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+
+        .pixel.black {
+            background-color: black;
+            color: #333;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.1s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        button.reset {
+            background-color: #e74c3c;
+        }
+
+        .code-display {
+            background-color: #2c3e50;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            padding: 15px;
+            border-radius: 5px;
+            word-break: break-all;
+            margin-top: 10px;
+            min-height: 50px;
+            font-size: 18px;
+            letter-spacing: 2px;
+        }
+
+        /* 解码游戏部分 */
+        .slider-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        input[type=range] {
+            width: 300px;
+        }
+
+        .hint {
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            margin-top: 20px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>有趣的编码应用：二值的黑白图像</h1>
+    <p style="text-align: center;">课件来源：四年级第12课</p>
+
+    <div class="container">
+        <h2>1. 计算机眼中的黑白</h2>
+        <div class="concept-box">
+            <p><strong>知识点：</strong> 在计算机中，图片是用 <strong>0</strong> 和 <strong>1</strong> 的不同排列组合来表示的。</p>
+            <p>规则很简单：<strong>0 代表白色，1 代表黑色</strong> </p>
+        </div>
+        
+        <div style="text-align: center;">
+            <p>试着点击下面的方块，看看数字怎么变化！</p>
+            <div id="single-pixel" class="pixel" style="width: 100px; height: 100px; font-size: 40px; margin: 0 auto; border: 2px solid black;">0</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>2. 小小设计师：画图生成代码</h2>
+        <div class="concept-box">
+            <p><strong>任务：</strong> 在下面的网格中点击绘制图形，下面会自动生成计算机能读懂的“01编码”</p>
+        </div>
+
+        <div class="pixel-grid" id="draw-grid" style="grid-template-columns: repeat(8, 30px);">
+            </div>
+
+        <h3>生成的 0/1 编码：</h3>
+        <div class="code-display" id="generated-code">
+            00000000...
+        </div>
+        <div class="controls">
+            <button onclick="clearGrid()">清空画布</button>
+            <button onclick="drawHeart()">画个爱心</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>3. 解码挑战：神秘的笑脸</h2>
+        <div class="concept-box">
+            <p><strong>问题：</strong> 计算机里的代码通常存储成一长串。如果不告诉计算机这一行有几个格子（列数），图像就会乱掉！</p>
+            <p><strong>任务：</strong> 下面有一串代码，它包含了一个隐藏的图案。请拖动滑块调整<strong>“列数”</strong>，直到你看到正常的图案。</p>
+        </div>
+
+        <div class="code-display" style="font-size: 14px; height: 60px; overflow-y: scroll;">
+            1110111101100110000000100000101111110
+        </div>
+
+        <div class="slider-container">
+            <label for="width-slider">每行格数(列数): <span id="width-val" style="font-weight: bold; color: var(--primary-color);">5</span></label><br>
+            <input type="range" id="width-slider" min="3" max="15" value="5">
+            <p class="hint">当前状态：<span id="status-text">乱码中...再试试？</span></p>
+        </div>
+
+        <div class="pixel-grid" id="decode-grid">
+            </div>
+    </div>
+
+    <div class="container">
+        <h2>4. 拓展：文字也是点阵图</h2>
+        <div class="concept-box">
+            <p><strong>知识点：</strong> 汉字在计算机里也是通过点阵（很多个0和1）存储的。比如下面的“智”字 。</p>
+        </div>
+        
+        <div style="display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap;">
+            <div>
+                <h3 style="text-align: center;">汉字“智”</h3>
+                <div class="pixel-grid" id="text-grid" style="grid-template-columns: repeat(11, 20px);">
+                    </div>
+            </div>
+            <div style="max-width: 300px;">
+                <p>越复杂的图像或文字，包含的信息量越大，编码也就越长 。</p>
+                <p>左图是一个 11行 x 11列 的点阵字库示例。</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>根据《义务教育信息科技课程资源 四年级》课件内容生成</p>
+    </div>
+
+    <script>
+        // --- 1. 单个像素交互 ---
+        const singlePixel = document.getElementById('single-pixel');
+        singlePixel.addEventListener('click', () => {
+            if (singlePixel.classList.contains('black')) {
+                singlePixel.classList.remove('black');
+                singlePixel.textContent = '0';
+                singlePixel.style.color = '#ccc';
+            } else {
+                singlePixel.classList.add('black');
+                singlePixel.textContent = '1';
+                singlePixel.style.color = 'white';
+            }
+        });
+
+        // --- 2. 绘图生成代码 (8x8) ---
+        const drawGrid = document.getElementById('draw-grid');
+        const codeDisplay = document.getElementById('generated-code');
+        const gridSize = 8;
+        let pixels = [];
+
+        function initDrawGrid() {
+            drawGrid.innerHTML = '';
+            pixels = [];
+            for (let i = 0; i < gridSize * gridSize; i++) {
+                const p = document.createElement('div');
+                p.classList.add('pixel');
+                p.dataset.index = i;
+                p.addEventListener('click', () => togglePixel(p));
+                drawGrid.appendChild(p);
+                pixels.push(p);
+            }
+            updateCode();
+        }
+
+        function togglePixel(el) {
+            el.classList.toggle('black');
+            updateCode();
+        }
+
+        function updateCode() {
+            let binary = '';
+            pixels.forEach(p => {
+                binary += p.classList.contains('black') ? '1' : '0';
+            });
+            // 每8位加一个空格方便阅读
+            codeDisplay.textContent = binary.match(/.{1,8}/g).join(' ');
+        }
+
+        function clearGrid() {
+            pixels.forEach(p => p.classList.remove('black'));
+            updateCode();
+        }
+
+        function drawHeart() {
+            clearGrid();
+            // 一个简单的爱心图案索引
+            const heartIndices = [
+                1,2, 4,5,
+                0,3,6,7,
+                0,7,
+                1,6,
+                2,5,
+                3,4
+            ];
+            // 修正为标准8x8爱心
+            const heartMap = [
+                0,1,1,0,0,1,1,0,
+                1,1,1,1,1,1,1,1,
+                1,1,1,1,1,1,1,1,
+                1,1,1,1,1,1,1,1,
+                0,1,1,1,1,1,1,0,
+                0,0,1,1,1,1,0,0,
+                0,0,0,1,1,0,0,0,
+                0,0,0,0,0,0,0,0
+            ];
+            
+            pixels.forEach((p, index) => {
+                if(heartMap[index] === 1) p.classList.add('black');
+            });
+            updateCode();
+        }
+
+        initDrawGrid();
+
+        // --- 3. 解码游戏 (课件中的笑脸) ---
+        // 课件来源 
+        // 原始数据是 5行7列
+        // 1 1 1 0 1 1 1
+        // 0 1 1 0 0 1 1
+        // 0 0 0 0 0 0 0 
+        // 1 0 0 0 0 0 1
+        // 0 1 1 1 1 1 0
+        // 扁平化字符串: 11101110110011000000010000010111110
+        // 注意：课件中的笑脸图实际上最后一行是 0111110，为了对齐效果，我们使用课件46页的数据。
+        // 课件46页上方代码串：
+        // 111011101100
+        // 1100000000100
+        // 000101111110
+        // 总长度 35位. 正确是7列，5行。
+        
+        const puzzleCode = "11101110110011000000010000010111110"; 
+        const decodeGrid = document.getElementById('decode-grid');
+        const widthSlider = document.getElementById('width-slider');
+        const widthVal = document.getElementById('width-val');
+        const statusText = document.getElementById('status-text');
+
+        function renderDecodeGrid(cols) {
+            decodeGrid.innerHTML = '';
+            decodeGrid.style.gridTemplateColumns = `repeat(${cols}, 30px)`;
+            
+            // 告诉学生：编码长度一定，但形状由列数决定
+            for (let i = 0; i < puzzleCode.length; i++) {
+                const p = document.createElement('div');
+                p.classList.add('pixel');
+                if (puzzleCode[i] === '1') {
+                    p.classList.add('black');
+                }
+                decodeGrid.appendChild(p);
+            }
+
+            // 检查是否是正确答案 (7列)
+            if (parseInt(cols) === 7) {
+                statusText.textContent = "成功解码！是一个笑脸！😄";
+                statusText.style.color = "green";
+                statusText.style.fontWeight = "bold";
+            } else {
+                statusText.textContent = "现在的图案很乱... 试着拖动滑块！";
+                statusText.style.color = "#e74c3c";
+            }
+        }
+
+        widthSlider.addEventListener('input', (e) => {
+            const val = e.target.value;
+            widthVal.textContent = val;
+            renderDecodeGrid(val);
+        });
+
+        // 初始化
+        renderDecodeGrid(5);
+
+        // --- 4. 汉字 "智" (课件77页) ---
+        // 这是一个近似的11x11点阵
+        const zhiChar = [
+            0,0,1,0,0,0,0,0,0,0,0,
+            0,0,1,1,1,1,1,0,0,1,1, // 矢 (简化)
+            0,1,0,0,1,0,0,0,0,1,1,
+            1,1,1,1,1,1,1,0,1,1,1, // 口
+            0,0,0,1,0,1,0,0,1,0,1,
+            0,0,1,0,0,0,1,0,1,1,1, // 智的上半部分比较复杂，这里模拟课件大概样子
+            0,0,0,0,0,0,0,0,0,0,0, // 分隔
+            0,0,1,1,1,1,1,1,1,0,0, // 日 (上横)
+            0,0,1,0,0,0,0,0,1,0,0, 
+            0,0,1,1,1,1,1,1,1,0,0, // 日 (中横)
+            0,0,1,0,0,0,0,0,1,0,0,
+            0,0,1,1,1,1,1,1,1,0,0  // 日 (下横)
+        ];
+        // 为了演示方便，我们用一个简化版的字模数据，或者让它静态展示即可，
+        // 但为了互动性，我们生成网格。
+        const textGrid = document.getElementById('text-grid');
+        
+        // 课件中的“智”字点阵数据（根据 source: 77 手工转录的大致形状，11列）
+        const zhiMatrix = [
+             0,0,1,0,0,0,0,0,0,0,0,
+             0,0,1,1,1,1,1,0,0,1,1,
+             0,1,0,0,1,0,0,0,1,0,1,
+             0,0,0,0,1,0,0,0,1,0,1,
+             1,1,1,1,1,1,1,0,1,0,1,
+             0,0,0,1,0,1,0,0,1,1,1,
+             0,0,1,0,0,0,1,0,0,0,0,
+             0,0,0,0,0,0,0,0,0,0,0,
+             0,0,1,1,1,1,1,1,1,0,0,
+             0,0,1,0,0,0,0,0,1,0,0,
+             0,0,1,0,0,0,0,0,1,0,0,
+             0,0,1,1,1,1,1,1,1,0,0,
+             0,0,1,0,0,0,0,0,1,0,0,
+             0,0,1,0,0,0,0,0,1,0,0,
+             0,0,1,1,1,1,1,1,1,0,0
+        ];
+
+        function drawTextGrid() {
+            textGrid.style.gridTemplateColumns = `repeat(11, 20px)`;
+            zhiMatrix.forEach(bit => {
+                const p = document.createElement('div');
+                p.classList.add('pixel');
+                p.style.width = '20px';
+                p.style.height = '20px';
+                if(bit === 1) p.classList.add('black');
+                textGrid.appendChild(p);
+            });
+        }
+        drawTextGrid();
+
+    </script>
+</body>
+</html>
