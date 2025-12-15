@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片编码原理 - 从像素到0和1</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(45deg, #4a6ee0, #667eea);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid #4a6ee0;
+        }
+        
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        
+        .step-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .step {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .step:hover {
+            transform: translateY(-5px);
+        }
+        
+        .step h3 {
+            color: #4a6ee0;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 2px;
+            width: 200px;
+            margin: 20px auto;
+            border: 3px solid #333;
+            padding: 5px;
+            background: white;
+        }
+        
+        .demo-pixel {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .white { background-color: #ffffff; color: #333; }
+        .black { background-color: #000000; }
+        .red { background-color: #ff0000; }
+        .green { background-color: #00ff00; color: #333; }
+        .blue { background-color: #0000ff; }
+        .yellow { background-color: #ffff00; color: #333; }
+        
+        .encoding-display {
+            background: #2c3e50;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .binary-string {
+            font-size: 12px;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        
+        .color-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .color-table th,
+        .color-table td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .color-table th {
+            background: #4a6ee0;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .color-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .color-sample {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin: 0 auto;
+            border: 2px solid #ddd;
+        }
+        
+        .interactive-demo {
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+        
+        .demo-controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background: #4a6ee0;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #3d5ed8;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .concept-box {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 25px 0;
+        }
+        
+        .concept-box h4 {
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+        
+        .highlight {
+            background: #fff3cd;
+            color: #856404;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            color: #666;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🖼️ 图片编码原理</h1>
+            <div class="subtitle">从像素到0和1的神奇旅程</div>
+        </header>
+        
+        <div class="content">
+            <div class="concept-box">
+                <h4>💡 核心概念</h4>
+                <p>计算机中的图片其实是一串很长的<span class="highlight">0和1</span>！这个过程分为三个步骤：</p>
+                <ol style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>分解</strong>：把图片分成很多小方块（像素）</li>
+                    <li><strong>编码</strong>：每个小方块用数字表示颜色</li>
+                    <li><strong>转换</strong>：数字转换为二进制（0和1）</li>
+                </ol>
+            </div>
+            
+            <div class="section">
+                <h2>📐 步骤一：图片分解为像素</h2>
+                <p>计算机把图片看成一个网格，每个小格子叫做<span class="highlight">像素（Pixel）</span>。像素越多，图片越清晰！</p>
+                
+                <div class="step-container">
+                    <div class="step">
+                        <h3>🔍 放大看图片</h3>
+                        <p>当你用放大镜看屏幕时，会发现图片是由很多小方块组成的。</p>
+                        <div class="demo-grid" id="demoGrid1">
+                            <!-- 8x8网格将通过JavaScript生成 -->
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <h3>📊 像素数量</h3>
+                        <ul style="line-height: 1.8;">
+                            <li><strong>低分辨率</strong>：8×8 = 64个像素</li>
+                            <li><strong>中等分辨率</strong>：100×100 = 10,000个像素</li>
+                            <li><strong>高分辨率</strong>：1920×1080 = 2,073,600个像素</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>🎨 步骤二：颜色编码</h2>
+                <p>每个像素需要记录它的<span class="highlight">颜色</span>。计算机用RGB模式：</p>
+                
+                <table class="color-table">
+                    <thead>
+                        <tr>
+                            <th>颜色</th>
+                            <th>红色 (R)</th>
+                            <th>绿色 (G)</th>
+                            <th>蓝色 (B)</th>
+                            <th>示例</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>黑色</strong></td>
+                            <td>0</td>
+                            <td>0</td>
+                            <td>0</td>
+                            <td><div class="color-sample" style="background: #000000;"></div></td>
+                        </tr>
+                        <tr>
+                            <td><strong>白色</strong></td>
+                            <td>255</td>
+                            <td>255</td>
+                            <td>255</td>
+                            <td><div class="color-sample" style="background: #ffffff;"></div></td>
+                        </tr>
+                        <tr>
+                            <td><strong>红色</strong></td>
+                            <td>255</td>
+                            <td>0</td>
+                            <td>0</td>
+                            <td><div class="color-sample" style="background: #ff0000;"></div></td>
+                        </tr>
+                        <tr>
+                            <td><strong>绿色</strong></td>
+                            <td>0</td>
+                            <td>255</td>
+                            <td>0</td>
+                            <td><div class="color-sample" style="background: #00ff00;"></div></td>
+                        </tr>
+                        <tr>
+                            <td><strong>蓝色</strong></td>
+                            <td>0</td>
+                            <td>0</td>
+                            <td>255</td>
+                            <td><div class="color-sample" style="background: #0000ff;"></div></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="section">
+                <h2>🔢 步骤三：数字转换为0和1</h2>
+                <p>计算机只能理解<span class="highlight">0和1</span>，所以需要把十进制数字转换为二进制：</p>
+                
+                <div class="encoding-display" id="binaryDemo">
+                    <h4 style="color: #00ff00; margin-bottom: 15px;">📝 转换示例</h4>
+                    <div id="conversionSteps"></div>
+                </div>
+                
+                <div class="interactive-demo">
+                    <h3>🎮 互动演示：创建你的第一个编码</h3>
+                    <p>点击下面的颜色来创建一个简单的8×8图案，然后看看它如何变成0和1！</p>
+                    
+                    <div class="demo-controls">
+                        <button class="btn btn-secondary" onclick="setBrush('white')">⚪ 白色</button>
+                        <button class="btn btn-secondary" onclick="setBrush('black')">⚫ 黑色</button>
+                        <button class="btn btn-secondary" onclick="setBrush('red')">🔴 红色</button>
+                        <button class="btn btn-secondary" onclick="setBrush('green')">🟢 绿色</button>
+                        <button class="btn btn-secondary" onclick="setBrush('blue')">🔵 蓝色</button>
+                        <button class="btn btn-secondary" onclick="setBrush('yellow')">🟡 黄色</button>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <div class="demo-grid" id="interactiveGrid"></div>
+                        <p style="margin: 15px 0;"><strong>当前画笔：</strong><span id="currentBrush">白色</span></p>
+                        
+                        <div style="margin: 20px 0;">
+                            <h4 style="color: white; margin-bottom: 15px;">🎨 快速绘制图案</h4>
+                            <div class="demo-controls">
+                                <button class="btn btn-secondary" onclick="drawHeart()">❤️ 爱心</button>
+                                <button class="btn btn-secondary" onclick="drawStar()">⭐ 星星</button>
+                                <button class="btn btn-secondary" onclick="drawSmiley()">😊 笑脸</button>
+                                <button class="btn btn-secondary" onclick="drawDiamond()">💎 钻石</button>
+                                <button class="btn btn-secondary" onclick="drawHouse()">🏠 小屋</button>
+                                <button class="btn btn-secondary" onclick="drawTree()">🌲 大树</button>
+                            </div>
+                        </div>
+                        
+                        <div style="margin: 20px 0;">
+                            <button class="btn btn-primary" onclick="generateBinary()">🚀 生成二进制编码</button>
+                            <button class="btn btn-secondary" onclick="clearGrid()">🗑️ 清空</button>
+                        </div>
+                    </div>
+                    
+                    <div class="encoding-display" id="resultDisplay" style="margin-top: 20px; display: none;">
+                        <h4 style="color: #00ff00;">📄 你的图片编码结果</h4>
+                        <div id="binaryResult"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <h4>🎯 总结：图片编码的全过程</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px;">
+                    <div>
+                        <h5>📸 原始图片</h5>
+                        <p>一张彩色的图片</p>
+                    </div>
+                    <div>
+                        <h5>🔲 像素分解</h5>
+                        <p>分解为8×8=64个像素</p>
+                    </div>
+                    <div>
+                        <h5>🔢 RGB编码</h5>
+                        <p>每个像素用3个数字表示颜色</p>
+                    </div>
+                    <div>
+                        <h5>⚡ 二进制转换</h5>
+                        <p>转换为0和1的序列</p>
+                    </div>
+                </div>
+                <p style="margin-top: 20px; font-size: 1.1rem;">
+                    <strong>结果：</strong>一张图片变成了一串很长的<span class="highlight">0和1</span>！
+                </p>
+            </div>
+        </div>
+        
+        <footer>
+            <p>🎓 图片编码原理教学演示 | 帮助理解数字化信息的本质</p>
+        </footer>
+    </div>
+    
+    <script>
+        // 全局变量
+        let currentBrush = 'white';
+        let interactiveGrid = [];
+        
+        // 颜色映射
+        const colorMap = {
+            white: {name: '白色', r: 255, g: 255, b: 255, class: 'white'},
+            black: {name: '黑色', r: 0, g: 0, b: 0, class: 'black'},
+            red: {name: '红色', r: 255, g: 0, b: 0, class: 'red'},
+            green: {name: '绿色', r: 0, g: 255, b: 0, class: 'green'},
+            blue: {name: '蓝色', r: 0, g: 0, b: 255, class: 'blue'},
+            yellow: {name: '黄色', r: 255, g: 255, b: 0, class: 'yellow'}
+        };
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            createDemoGrid();
+            createInteractiveGrid();
+            showBinaryConversion();
+        });
+        
+        // 创建演示网格
+        function createDemoGrid() {
+            const grid = document.getElementById('demoGrid1');
+            const pattern = [
+                [0,0,0,0,0,0,0,0],
+                [0,1,1,1,1,1,1,0],
+                [0,1,2,2,2,2,1,0],
+                [0,1,2,3,3,2,1,0],
+                [0,1,2,3,3,2,1,0],
+                [0,1,2,2,2,2,1,0],
+                [0,1,1,1,1,1,1,0],
+                [0,0,0,0,0,0,0,0]
+            ];
+            
+            const colors = ['', 'black', 'red', 'blue'];
+            
+            for (let i = 0; i < 64; i++) {
+                const pixel = document.createElement('div');
+                pixel.className = `demo-pixel ${colors[pattern[Math.floor(i/8)][i%8]]}`;
+                pixel.textContent = pattern[Math.floor(i/8)][i%8] || '';
+                grid.appendChild(pixel);
+            }
+        }
+        
+        // 创建互动网格
+        function createInteractiveGrid() {
+            const grid = document.getElementById('interactiveGrid');
+            interactiveGrid = [];
+            
+            for (let i = 0; i < 64; i++) {
+                interactiveGrid.push('white');
+                const pixel = document.createElement('div');
+                pixel.className = 'demo-pixel white';
+                pixel.dataset.index = i;
+                pixel.addEventListener('click', () => paintPixel(i));
+                grid.appendChild(pixel);
+            }
+        }
+        
+        // 设置画笔
+        function setBrush(color) {
+            currentBrush = color;
+            document.getElementById('currentBrush').textContent = colorMap[color].name;
+        }
+        
+        // 绘制像素
+        function paintPixel(index) {
+            interactiveGrid[index] = currentBrush;
+            const pixel = document.querySelector(`[data-index="${index}"]`);
+            pixel.className = `demo-pixel ${colorMap[currentBrush].class}`;
+        }
+        
+        // 直接设置像素颜色（用于预设图案）
+        function setPixelColor(index, colorName) {
+            interactiveGrid[index] = colorName;
+            const pixel = document.querySelector(`[data-index="${index}"]`);
+            pixel.className = `demo-pixel ${colorMap[colorName].class}`;
+        }
+        
+        // 清空网格
+        function clearGrid() {
+            interactiveGrid = new Array(64).fill('white');
+            const pixels = document.querySelectorAll('#interactiveGrid .demo-pixel');
+            pixels.forEach((pixel, index) => {
+                pixel.className = 'demo-pixel white';
+            });
+            document.getElementById('resultDisplay').style.display = 'none';
+        }
+
+        // 绘制爱心
+        function drawHeart() {
+            clearGrid();
+            const heartPattern = [
+                [0,0,1,1,0,0,0,0],
+                [0,1,1,1,1,1,0,0],
+                [1,1,1,1,1,1,1,0],
+                [1,1,1,1,1,1,1,0],
+                [0,1,1,1,1,1,0,0],
+                [0,0,1,1,1,1,0,0],
+                [0,0,0,1,0,0,0,0],
+                [0,0,0,0,0,0,0,0]
+            ];
+            
+            for (let i = 0; i < 64; i++) {
+                const row = Math.floor(i / 8);
+                const col = i % 8;
+                const colorValue = heartPattern[row][col];
+                if (colorValue === 1) {
+                    setPixelColor(i, 'red');
+                }
+            }
+        }
+        
+        // 绘制星星
+        function drawStar() {
+            clearGrid();
+            const starPattern = [
+                [0,0,0,1,0,0,0,0],
+                [0,0,1,1,1,0,0,0],
+                [0,1,1,1,1,1,0,0],
+                [1,1,1,1,1,1,1,0],
+                [0,1,1,1,1,1,0,0],
+                [0,0,1,1,1,0,0,0],
+                [0,0,0,1,0,0,0,0],
+                [0,0,0,0,0,0,0,0]
+            ];
+            
+            for (let i = 0; i < 64; i++) {
+                const row = Math.floor(i / 8);
+                const col = i % 8;
+                const colorValue = starPattern[row][col];
+                if (colorValue === 1) {
+                    setPixelColor(i, 'yellow');
+                }
+            }
+        }
+        
+        // 绘制笑脸
+        function drawSmiley() {
+            clearGrid();
+            const smileyPattern = [
+                [0,0,1,1,1,1,0,0],
+                [0,1,0,0,0,0,1,0],
+                [1,0,0,0,0,0,0,1],
+                [1,0,0,2,2,0,0,1],
+                [1,0,0,2,2,0,0,1],
+                [1,0,0,0,0,0,0,1],
+                [0,1,0,1,1,0,1,0],
+                [0,0,1,1,1,1,0,0]
+            ];
+            
+            for (let i = 0; i < 64; i++) {
+                const row = Math.floor(i / 8);
+                const col = i % 8;
+                const colorValue = smileyPattern[row][col];
+                if (colorValue === 1) {
+                    setPixelColor(i, 'yellow');
+                } else if (colorValue === 2) {
+                    setPixelColor(i, 'red');
+                }
+            }
+        }
+        
+        // 绘制钻石
+        function drawDiamond() {
+            clearGrid();
+            const diamondPattern = [
+                [0,0,0,1,0,0,0,0],
+                [0,0,1,1,1,0,0,0],
+                [0,1,1,1,1,1,0,0],
+                [1,1,1,1,1,1,1,0],
+                [0,1,1,1,1,1,0,0],
+                [0,0,1,1,1,0,0,0],
+                [0,0,0,1,0,0,0,0],
+                [0,0,0,0,0,0,0,0]
+            ];
+            
+            for (let i = 0; i < 64; i++) {
+                const row = Math.floor(i / 8);
+                const col = i % 8;
+                const colorValue = diamondPattern[row][col];
+                if (colorValue === 1) {
+                    setPixelColor(i, 'blue');
+                }
+            }
+        }
+        
+        // 绘制小屋
+        function drawHouse() {
+            clearGrid();
+            const housePattern = [
+                [0,0,1,1,1,1,0,0],
+                [0,1,2,2,2,2,1,0],
+                [1,2,3,3,3,3,2,1],
+                [1,2,3,4,4,3,2,1],
+                [1,2,3,4,4,3,2,1],
+                [1,2,3,4,4,3,2,1],
+                [0,1,2,3,3,2,1,0],
+                [0,0,1,1,1,1,0,0]
+            ];
+            
+            for (let i = 0; i < 64; i++) {
+                const row = Math.floor(i / 8);
+                const col = i % 8;
+                const colorValue = housePattern[row][col];
+                if (colorValue === 1) {
+                    setPixelColor(i, 'red');
+                } else if (colorValue === 2) {
+                    setPixelColor(i, 'brown');
+                } else if (colorValue === 3) {
+                    setPixelColor(i, 'blue');
+                } else if (colorValue === 4) {
+                    setPixelColor(i, 'blue');
+                }
+            }
+        }
+        
+        // 绘制大树
+        function drawTree() {
+            clearGrid();
+            const treePattern = [
+                [0,0,0,1,0,0,0,0],
+                [0,0,1,1,1,0,0,0],
+                [0,1,1,1,1,1,0,0],
+                [1,1,1,1,1,1,1,0],
+                [0,1,1,1,1,1,0,0],
+                [0,0,0,2,0,0,0,0],
+                [0,0,0,2,0,0,0,0],
+                [0,0,0,2,0,0,0,0]
+            ];
+            
+            for (let i = 0; i < 64; i++) {
+                const row = Math.floor(i / 8);
+                const col = i % 8;
+                const colorValue = treePattern[row][col];
+                if (colorValue === 1) {
+                    setPixelColor(i, 'green');
+                } else if (colorValue === 2) {
+                    setPixelColor(i, 'brown');
+                }
+            }
+        }
+        
+        // 生成二进制编码
+        function generateBinary() {
+            const resultDiv = document.getElementById('binaryResult');
+            let binarySequence = '';
+            let encodingSteps = [];
+            
+            interactiveGrid.forEach((color, index) => {
+                const colorData = colorMap[color];
+                const row = Math.floor(index / 8) + 1;
+                const col = (index % 8) + 1;
+                
+                // RGB转二进制
+                const rBinary = colorData.r.toString(2).padStart(8, '0');
+                const gBinary = colorData.g.toString(2).padStart(8, '0');
+                const bBinary = colorData.b.toString(2).padStart(8, '0');
+                
+                const pixelBinary = rBinary + gBinary + bBinary;
+                binarySequence += pixelBinary;
+                
+                encodingSteps.push({
+                    position: `(${row}, ${col})`,
+                    color: colorData.name,
+                    rgb: `RGB(${colorData.r}, ${colorData.g}, ${colorData.b})`,
+                    binary: pixelBinary
+                });
+            });
+            
+            // 显示结果
+            let resultHTML = '<div style="margin-bottom: 20px;"><h5>📍 像素编码详情：</h5></div>';
+            encodingSteps.forEach((step, index) => {
+                if (index < 8) { // 只显示前8个像素以节省空间
+                    resultHTML += `<div style="margin: 5px 0; padding: 5px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                        像素${step.position} - ${step.color} ${step.rgb} → <span style="color: #00ff00;">${step.binary}</span>
+                    </div>`;
+                }
+            });
+            
+            if (encodingSteps.length > 8) {
+                resultHTML += `<div style="margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                    ... 还有 ${encodingSteps.length - 8} 个像素
+                </div>`;
+            }
+            
+            resultHTML += `<div style="margin-top: 20px; padding: 15px; background: rgba(0,255,0,0.2); border-radius: 10px;">
+                <h5 style="color: #00ff00;">🔢 完整二进制编码：</h5>
+                <div class="binary-string">${binarySequence}</div>
+                <p style="margin-top: 10px;">总长度：<strong>${binarySequence.length}</strong> 位 (0和1)</p>
+                <p>文件大小：约 <strong>${Math.ceil(binarySequence.length / 8)}</strong> 字节</p>
+            </div>`;
+            
+            resultDiv.innerHTML = resultHTML;
+            document.getElementById('resultDisplay').style.display = 'block';
+        }
+        
+        // 显示二进制转换示例
+        function showBinaryConversion() {
+            const stepsDiv = document.getElementById('conversionSteps');
+            const examples = [
+                {decimal: 255, name: '白色中的红色分量'},
+                {decimal: 128, name: '中等亮度'},
+                {decimal: 64, name: '较暗颜色'},
+                {decimal: 0, name: '无颜色分量'}
+            ];
+            
+            let html = '';
+            examples.forEach(example => {
+                const binary = example.decimal.toString(2).padStart(8, '0');
+                html += `<div style="margin: 15px 0; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                    <strong>${example.name}</strong><br>
+                    十进制：${example.decimal} → 二进制：<span style="color: #00ff00; font-weight: bold;">${binary}</span>
+                </div>`;
+            });
+            
+            stepsDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
