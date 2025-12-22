@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第14课：编码也能动起来</title>
+    <style>
+        :root {
+            --primary-color: #88c999; /* 课件中的绿色基调 */
+            --accent-color: #ffa500;  /* 橙色重点 */
+            --text-color: #333;
+            --bg-color: #f0f9f4;
+            --box-color: #e67e22;
+            --wall-color: #95a5a6;
+            --player-color: #2ecc71;
+            --goal-color: #f1c40f;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        /* 导航与布局 */
+        header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 { margin: 0; font-size: 1.5rem; color: #2c3e50; }
+        .subtitle { font-size: 0.9rem; color: #7f8c8d; }
+
+        section {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+
+        section:hover { transform: translateY(-5px); }
+
+        h2 { border-left: 5px solid var(--primary-color); padding-left: 10px; color: #2c3e50; }
+        
+        .highlight { color: var(--box-color); font-weight: bold; }
+
+        /* 游戏网格通用样式 */
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .grid-board {
+            display: grid;
+            gap: 2px;
+            background-color: #bdc3c7;
+            border: 5px solid #bdc3c7;
+            border-radius: 5px;
+        }
+
+        .cell {
+            width: 50px;
+            height: 50px;
+            background-color: #e8f5e9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            position: relative;
+        }
+
+        .cell.wall { background-color: var(--wall-color); background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v40H0V0zm20 20h20v20H20V20zM0 20h20v20H0V20zM20 0h20v20H20V0zM0 0h20v20H0V0z' fill='%237f8c8d' fill-opacity='0.1' fill-rule='evenodd'/%3E"); }
+        .cell.goal { background-color: #fff9c4; border: 2px dashed var(--goal-color); box-sizing: border-box; }
+        .cell.goal::after { content: '★'; color: var(--goal-color); font-size: 30px; }
+
+        /* 游戏角色样式 */
+        .sprite {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            position: absolute;
+            transition: all 0.2s ease;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        .sprite.player { background-color: var(--player-color); border: 2px solid #27ae60; }
+        .sprite.player::after { content: '☺'; color: white; display:flex; justify-content:center; align-items:center; height:100%; font-size:20px;}
+        
+        .sprite.box { 
+            background-color: var(--box-color); 
+            border-radius: 5px; 
+            border: 2px solid #d35400;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+        }
+        .sprite.box::before { content: 'X'; font-family: monospace; font-size: 24px;}
+
+        /* 控制按钮区域 */
+        .controls { margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;}
+        .controls button {
+            margin: 5px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.2s;
+            background-color: var(--primary-color);
+            color: white;
+        }
+        button:hover { background-color: #66bb6a; transform: scale(1.05); }
+        button:active { transform: scale(0.95); }
+        button.secondary { background-color: #95a5a6; }
+        button.action-btn { background-color: var(--accent-color); }
+
+        /* 编码展示区域 */
+        .code-display {
+            background: #2d3436;
+            color: #fab1a0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Consolas', monospace;
+            margin-top: 15px;
+            min-height: 40px;
+            width: 100%;
+            text-align: left;
+            position: relative;
+            overflow-x: auto;
+        }
+        .code-display::before { content: '生成的动作编码:'; display: block; color: #74b9ff; font-size: 12px; margin-bottom: 5px;}
+
+        /* 表格样式 */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .comparison-table th { background-color: var(--primary-color); color: white; }
+
+        /* 动画提示 */
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-10px);}
+            60% {transform: translateY(-5px);}
+        }
+        .bounce { animation: bounce 2s infinite; }
+
+        /* 步骤指示器 */
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        .step-dot {
+            width: 12px;
+            height: 12px;
+            background: #ddd;
+            border-radius: 50%;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+        .step-dot.active { background: var(--primary-color); transform: scale(1.2); }
+
+        /* 拓展作业卡片 */
+        .homework-card {
+            background: #fff3e0;
+            border-left: 5px solid #ff9800;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(255, 152, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <h1>第14课 编码也能动起来</h1>
+        <span class="subtitle">义务教育信息科技课程资源 · 四年级</span>
+    </div>
+    <div style="font-size: 0.9rem; background: #eee; padding: 5px 10px; border-radius: 15px;">
+        👩‍🏫 互动教学模式
+    </div>
+</header>
+
+<section id="part1">
+    <h2>1. 问题情境：推箱子</h2>
+    <p>同学们，你们玩过“推箱子”的游戏吗？📦</p>
+    <div style="display: flex; gap: 20px; align-items: flex-start;">
+        <div style="flex: 1;">
+            <p><strong>思考：</strong>在没有网格的白纸上描述怎么走，和在有网格的棋盘上描述，哪个更清楚？</p>
+            <ul>
+                <li>❌ 无网格：往那边走一点，再往上走一点...（模糊）</li>
+                <li>✅ 有网格：向右走2格，向上推1格...（精准）</li>
+            </ul>
+        </div>
+        <div style="flex: 1; text-align: center;">
+            <img src="data:image/svg+xml,%3Csvg width='200' height='150' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23eee'/%3E%3Cpath d='M0 50h200M0 100h200M50 0v150M100 0v150M150 0v150' stroke='%23ccc' stroke-width='2'/%3E%3Ccircle cx='75' cy='125' r='15' fill='%232ecc71'/%3E%3Crect x='105' y='60' width='40' height='40' fill='%23e67e22' stroke='%23d35400' stroke-width='2'/%3E%3Ctext x='117' y='88' font-family='monospace' fill='white' font-size='20'%3EX%3C/text%3E%3C/svg%3E" alt="网格示意图">
+            <p style="font-size: 12px; color: #666;">网格起到了坐标和度量的作用</p>
+        </div>
+    </div>
+</section>
+
+<section id="part2">
+    <h2>2. 学习活动一：推箱子（第一关）</h2>
+    <p>请你试着玩一玩这个小游戏，把绿色的圆球（玩家）移动，推动橙色的箱子，直到把箱子推到星星（目的地）位置。</p>
+    <div class="tip" style="background: #e3f2fd; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+        💡 提示：使用下方的<strong>方向按钮</strong>或键盘<strong>方向键</strong>来控制。
+    </div>
+
+    <div class="game-container" id="game-level-1">
+        <div class="grid-board" id="board-1"></div>
+        <div class="controls">
+            <button onclick="game1.move(0, -1)">↑ 向上</button>
+            <div style="width: 100%; height: 0;"></div> <button onclick="game1.move(-1, 0)">← 向左</button>
+            <button onclick="game1.move(0, 1)">↓ 向下</button>
+            <button onclick="game1.move(1, 0)">→ 向右</button>
+            <button class="secondary" onclick="game1.reset()">↺ 重置</button>
+        </div>
+        <div id="status-1" style="margin-top: 10px; font-weight: bold; color: var(--primary-color);"></div>
+    </div>
+</section>
+
+<section id="part3">
+    <h2>3. 学习活动二：设计动作编码</h2>
+    <p>刚才我们玩游戏的过程，其实就是执行一系列“动作”。如果我们要把过关的方法记录下来，发给你的好朋友，怎么写最简单？</p>
+    
+    <div style="background: #fff; padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
+        <h3>编码大比拼</h3>
+        <p>我们可以用不同的符号来代表方向：</p>
+        <table class="comparison-table">
+            <tr>
+                <th>编码类型</th>
+                <th>向上</th>
+                <th>向下</th>
+                <th>向左</th>
+                <th>向右</th>
+                <th>特点</th>
+            </tr>
+            <tr>
+                <td>中文描述</td>
+                <td>上</td>
+                <td>下</td>
+                <td>左</td>
+                <td>右</td>
+                <td>通俗易懂</td>
+            </tr>
+            <tr>
+                <td>符号图形</td>
+                <td>↑</td>
+                <td>↓</td>
+                <td>←</td>
+                <td>→</td>
+                <td>直观简洁</td>
+            </tr>
+            <tr>
+                <td>英文缩写</td>
+                <td>up</td>
+                <td>dw</td>
+                <td>lt</td>
+                <td>rt</td>
+                <td>国际化</td>
+            </tr>
+        </table>
+        <p><strong>结论：</strong>编码要遵循<strong>唯一性、简洁性、准确性</strong>的原则。</p>
+    </div>
+</section>
+
+<section id="part4">
+    <h2>4. 学习活动三：推箱子（第二关）—— 编码挑战</h2>
+    <p>难度升级了！这次我们不直接控制，而是要<strong>先写好编码（命令序列）</strong>，然后让计算机一次性执行。这就是“编程”的思维！</p>
+    
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 300px;">
+            <div class="game-container">
+                <div class="grid-board" id="board-2"></div>
+                <div id="status-2" style="margin-top: 10px; font-weight: bold; color: var(--primary-color); min-height: 24px;"></div>
+            </div>
+        </div>
+
+        <div style="flex: 1; min-width: 300px; background: #f8f9fa; padding: 15px; border-radius: 10px;">
+            <h3>🛠️ 编写你的程序</h3>
+            <p>点击按钮添加指令：</p>
+            <div class="controls" style="justify-content: flex-start;">
+                <button class="action-btn" onclick="coder.add('up')">↑ Up</button>
+                <button class="action-btn" onclick="coder.add('down')">↓ Down</button>
+                <button class="action-btn" onclick="coder.add('left')">← Left</button>
+                <button class="action-btn" onclick="coder.add('right')">→ Right</button>
+            </div>
+            
+            <div class="code-display" id="code-output">
+                </div>
+
+            <div class="controls" style="justify-content: flex-start; margin-top: 15px;">
+                <button onclick="coder.run()" style="background-color: #27ae60;">▶️ 执行程序</button>
+                <button class="secondary" onclick="coder.clear()">🗑️ 清空指令</button>
+                <button class="secondary" onclick="coder.resetGame()">↺ 重置关卡</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="part5">
+    <h2>5. 课堂总结与拓展</h2>
+    <ul>
+        <li>✅ <strong>网格的作用：</strong> 帮助我们准确标识位置和方向。</li>
+        <li>✅ <strong>编码的意义：</strong> 清晰有效地表示动作序列，是与计算机沟通的语言。</li>
+    </ul>
+
+    <div class="homework-card">
+        <h3>🏠 课后小任务：扫地机器人规划师 </h3>
+        <p>家里的扫地机器人需要规划路线。请你：</p>
+        <ol>
+            <li>画出你房间的平面图，并画上网格。</li>
+            <li>规划一条能扫遍空地但不撞墙的路线。</li>
+            <li>用今天学的编码（如 ↑ → ↓ ←）把它记录下来。</li>
+        </ol>
+    </div>
+</section>
+
+<script>
+/**
+ * 简易游戏引擎 - 推箱子
+ */
+class SokobanGame {
+    constructor(containerId, mapLayout, playerStart, isCodingMode = false) {
+        this.container = document.getElementById(containerId);
+        this.initialMap = JSON.parse(JSON.stringify(mapLayout)); // 深拷贝
+        this.initialPlayer = {...playerStart};
+        this.map = mapLayout;
+        this.player = playerStart;
+        this.cols = mapLayout[0].length;
+        this.rows = mapLayout.length;
+        this.boxPos = this.findItem(2); // 2 represents Box
+        this.goalPos = this.findItem(3); // 3 represents Goal
+        this.isCodingMode = isCodingMode;
+        this.statusElement = document.getElementById(isCodingMode ? 'status-2' : 'status-1');
+        
+        this.init();
+    }
+
+    findItem(code) {
+        for(let y=0; y<this.rows; y++) {
+            for(let x=0; x<this.cols; x++) {
+                if(this.map[y][x] === code) return {x, y};
+            }
+        }
+        return {x: -1, y: -1}; // Not found
+    }
+
+    init() {
+        this.container.style.gridTemplateColumns = `repeat(${this.cols}, 50px)`;
+        this.container.style.gridTemplateRows = `repeat(${this.rows}, 50px)`;
+        this.render();
+    }
+
+    render() {
+        this.container.innerHTML = '';
+        for(let y=0; y<this.rows; y++) {
+            for(let x=0; x<this.cols; x++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                
+                const val = this.map[y][x];
+                if (val === 1) cell.classList.add('wall');
+                if (val === 3) cell.classList.add('goal');
+                
+                // Render Box
+                if (this.boxPos.x === x && this.boxPos.y === y) {
+                    const box = document.createElement('div');
+                    box.className = 'sprite box';
+                    cell.appendChild(box);
+                }
+
+                // Render Player
+                if (this.player.x === x && this.player.y === y) {
+                    const player = document.createElement('div');
+                    player.className = 'sprite player';
+                    cell.appendChild(player);
+                }
+
+                this.container.appendChild(cell);
+            }
+        }
+    }
+
+    async move(dx, dy) {
+        const newX = this.player.x + dx;
+        const newY = this.player.y + dy;
+
+        // 1. Check boundary & Walls
+        if (this.isWall(newX, newY)) return false;
+
+        // 2. Check Box
+        if (newX === this.boxPos.x && newY === this.boxPos.y) {
+            const nextBoxX = newX + dx;
+            const nextBoxY = newY + dy;
+            
+            // Check if box can move (not wall, not out of bounds)
+            if (this.isWall(nextBoxX, nextBoxY)) return false;
+
+            // Move Box
+            this.boxPos = {x: nextBoxX, y: nextBoxY};
+        }
+
+        // 3. Move Player
+        this.player = {x: newX, y: newY};
+        this.render();
+        this.checkWin();
+        return true;
+    }
+
+    isWall(x, y) {
+        if (x < 0 || x >= this.cols || y < 0 || y >= this.rows) return true;
+        return this.map[y][x] === 1;
+    }
+
+    checkWin() {
+        if (this.boxPos.x === this.goalPos.x && this.boxPos.y === this.goalPos.y) {
+            this.statusElement.innerText = "🎉 恭喜！任务完成！";
+            this.statusElement.classList.add('bounce');
+            // 如果是星星位置，改变样式
+            const cells = this.container.children;
+            const index = this.goalPos.y * this.cols + this.goalPos.x;
+            cells[index].style.backgroundColor = "#fff176";
+        } else {
+             this.statusElement.classList.remove('bounce');
+             if(!this.isCodingMode) this.statusElement.innerText = "";
+        }
+    }
+
+    reset() {
+        this.map = JSON.parse(JSON.stringify(this.initialMap)); // Restore map structure
+        this.player = {...this.initialPlayer};
+        this.boxPos = this.findItem(2);
+        this.statusElement.innerText = "";
+        this.render();
+    }
+}
+
+/**
+ * 编程控制器
+ */
+class CodeController {
+    constructor(gameInstance) {
+        this.game = gameInstance;
+        this.commands = [];
+        this.display = document.getElementById('code-output');
+        this.isRunning = false;
+    }
+
+    add(direction) {
+        if(this.isRunning) return;
+        this.commands.push(direction);
+        this.updateDisplay();
+    }
+
+    updateDisplay() {
+        const symbolMap = { 'up': '↑', 'down': '↓', 'left': '←', 'right': '→' };
+        this.display.innerHTML = this.commands.map(cmd => 
+            `<span style="background:#444; padding:2px 6px; margin:2px; border-radius:4px; display:inline-block;">${symbolMap[cmd]} ${cmd}</span>`
+        ).join('');
+    }
+
+    clear() {
+        if(this.isRunning) return;
+        this.commands = [];
+        this.updateDisplay();
+        this.game.reset();
+    }
+
+    resetGame() {
+        if(this.isRunning) return;
+        this.game.reset();
+    }
+
+    async run() {
+        if (this.commands.length === 0) {
+            alert("请先输入指令！");
+            return;
+        }
+        if (this.isRunning) return;
+
+        this.isRunning = true;
+        this.game.reset(); // Always start from clean slate
+        
+        let status = document.getElementById('status-2');
+        status.innerText = "🤖 程序正在执行...";
+
+        for (let i = 0; i < this.commands.length; i++) {
+            await new Promise(r => setTimeout(r, 500)); // Delay for animation
+            
+            const cmd = this.commands[i];
+            let dx=0, dy=0;
+            if (cmd === 'up') dy = -1;
+            if (cmd === 'down') dy = 1;
+            if (cmd === 'left') dx = -1;
+            if (cmd === 'right') dx = 1;
+
+            // Highlight current command
+            this.highlightCommand(i);
+            
+            await this.game.move(dx, dy);
+        }
+        
+        this.isRunning = false;
+        if(status.innerText !== "🎉 恭喜！任务完成！") {
+             status.innerText = "执行完毕。如果没有成功，请修改代码再试！";
+        }
+    }
+
+    highlightCommand(index) {
+        const spans = this.display.querySelectorAll('span');
+        spans.forEach(s => s.style.border = "none");
+        if(spans[index]) spans[index].style.border = "2px solid #fab1a0";
+    }
+}
+
+// 初始化数据
+// 0: Empty, 1: Wall, 2: Box (Initial), 3: Goal
+// Level 1 Map (Based on PPT Source 21/25 - 'S' shape path approximation)
+const map1 = [
+    [0, 0, 0, 3], // Goal top right
+    [0, 0, 2, 0], // Box middle
+    [0, 0, 0, 0]  // Player starts bottom left
+];
+const playerStart1 = {x: 0, y: 2};
+
+// Level 2 Map (Based on PPT Source 81 - wider area, obstacle)
+const map2 = [
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0], // 1 is obstacle box (treated as wall for simplicity or immovable block)
+    [0, 2, 0, 0, 0, 3]  // Box near player, Goal far right
+];
+// Adjusting map2 to match PPT logic better: 
+// 1 = Fixed Wall/Block, 2 = Pushable Box.
+// In source 81, there's a box with X (pushable) and a star.
+// Let's make a clear puzzle.
+const map2_fixed = [
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 2, 0, 0, 1, 0], // Box at (1,2)
+    [0, 0, 0, 0, 0, 3]  // Goal at (5,3)
+];
+// Player starts bottom left (0,3)
+
+const game1 = new SokobanGame('board-1', map1, playerStart1);
+const game2 = new SokobanGame('board-2', map2_fixed, {x: 0, y: 3}, true);
+const coder = new CodeController(game2);
+
+// 键盘控制绑定 (仅限 Level 1)
+document.addEventListener('keydown', (e) => {
+    // 只有当Level 1在视口内时才响应
+    const rect = document.getElementById('game-level-1').getBoundingClientRect();
+    if (rect.top >= -200 && rect.bottom <= window.innerHeight + 200) {
+        if(e.key === "ArrowUp") { e.preventDefault(); game1.move(0, -1); }
+        if(e.key === "ArrowDown") { e.preventDefault(); game1.move(0, 1); }
+        if(e.key === "ArrowLeft") { e.preventDefault(); game1.move(-1, 0); }
+        if(e.key === "ArrowRight") { e.preventDefault(); game1.move(1, 0); }
+    }
+});
+
+</script>
+
+</body>
+</html>
