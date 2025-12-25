@@ -301,6 +301,13 @@
     <div style="display: flex; gap: 20px; flex-wrap: wrap;">
         <div style="flex: 1; min-width: 300px;">
             <div class="game-container">
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; margin-bottom: 10px;">
+                    <span style="font-weight: bold;">当前关卡：</span>
+                    <button class="secondary" onclick="coder.prevLevel()">上一关</button>
+                    <select id="level-select" onchange="coder.setLevel(parseInt(this.value, 10))" style="padding: 10px 12px; border-radius: 8px; border: 2px solid #e0e0e0; font-size: 16px; background: white;"></select>
+                    <button class="secondary" onclick="coder.nextLevel()">下一关</button>
+                    <span id="level-hint" style="font-size: 14px; color: #7f8c8d;"></span>
+                </div>
                 <div class="grid-board" id="board-2"></div>
                 <div id="status-2" style="margin-top: 10px; font-weight: bold; color: var(--primary-color); min-height: 24px;"></div>
             </div>
@@ -359,21 +366,22 @@ class SokobanGame {
         this.player = playerStart;
         this.cols = mapLayout[0].length;
         this.rows = mapLayout.length;
-        this.boxPos = this.findItem(2); // 2 represents Box
-        this.goalPos = this.findItem(3); // 3 represents Goal
+        this.boxes = this.findItems(2); // 2 represents Box
+        this.goals = this.findItems(3); // 3 represents Goal
         this.isCodingMode = isCodingMode;
         this.statusElement = document.getElementById(isCodingMode ? 'status-2' : 'status-1');
         
         this.init();
     }
 
-    findItem(code) {
+    findItems(code) {
+        const items = [];
         for(let y=0; y<this.rows; y++) {
             for(let x=0; x<this.cols; x++) {
-                if(this.map[y][x] === code) return {x, y};
+                if(this.map[y][x] === code) items.push({x, y});
             }
         }
-        return {x: -1, y: -1}; // Not found
+        return items;
     }
 
     init() {
@@ -393,8 +401,8 @@ class SokobanGame {
                 if (val === 1) cell.classList.add('wall');
                 if (val === 3) cell.classList.add('goal');
                 
-                // Render Box
-                if (this.boxPos.x === x && this.boxPos.y === y) {
+                const hasBox = this.boxes.some(b => b.x === x && b.y === y);
+                if (hasBox) {
                     const box = document.createElement('div');
                     box.className = 'sprite box';
                     cell.appendChild(box);
@@ -420,15 +428,18 @@ class SokobanGame {
         if (this.isWall(newX, newY)) return false;
 
         // 2. Check Box
-        if (newX === this.boxPos.x && newY === this.boxPos.y) {
+        const boxIndex = this.boxes.findIndex(b => b.x === newX && b.y === newY);
+        if (boxIndex >= 0) {
             const nextBoxX = newX + dx;
             const nextBoxY = newY + dy;
             
             // Check if box can move (not wall, not out of bounds)
             if (this.isWall(nextBoxX, nextBoxY)) return false;
+            const hasNextBox = this.boxes.some(b => b.x === nextBoxX && b.y === nextBoxY);
+            if (hasNextBox) return false;
 
             // Move Box
-            this.boxPos = {x: nextBoxX, y: nextBoxY};
+            this.boxes[boxIndex] = {x: nextBoxX, y: nextBoxY};
         }
 
         // 3. Move Player
@@ -444,13 +455,16 @@ class SokobanGame {
     }
 
     checkWin() {
-        if (this.boxPos.x === this.goalPos.x && this.boxPos.y === this.goalPos.y) {
+        const goalSet = new Set(this.goals.map(g => `${g.x},${g.y}`));
+        const win = this.boxes.length > 0 && this.boxes.every(b => goalSet.has(`${b.x},${b.y}`));
+        if (win) {
             this.statusElement.innerText = "🎉 恭喜！任务完成！";
             this.statusElement.classList.add('bounce');
-            // 如果是星星位置，改变样式
             const cells = this.container.children;
-            const index = this.goalPos.y * this.cols + this.goalPos.x;
-            cells[index].style.backgroundColor = "#fff176";
+            this.goals.forEach(g => {
+                const index = g.y * this.cols + g.x;
+                if (cells[index]) cells[index].style.backgroundColor = "#fff176";
+            });
         } else {
              this.statusElement.classList.remove('bounce');
              if(!this.isCodingMode) this.statusElement.innerText = "";
@@ -460,9 +474,23 @@ class SokobanGame {
     reset() {
         this.map = JSON.parse(JSON.stringify(this.initialMap)); // Restore map structure
         this.player = {...this.initialPlayer};
-        this.boxPos = this.findItem(2);
+        this.boxes = this.findItems(2);
         this.statusElement.innerText = "";
         this.render();
+    }
+
+    loadLevel(mapLayout, playerStart) {
+        this.initialMap = JSON.parse(JSON.stringify(mapLayout));
+        this.initialPlayer = {...playerStart};
+        this.map = mapLayout;
+        this.player = {...playerStart};
+        this.cols = mapLayout[0].length;
+        this.rows = mapLayout.length;
+        this.boxes = this.findItems(2);
+        this.goals = this.findItems(3);
+        this.statusElement.innerText = "";
+        this.statusElement.classList.remove('bounce');
+        this.init();
     }
 }
 
@@ -470,11 +498,17 @@ class SokobanGame {
  * 编程控制器
  */
 class CodeController {
-    constructor(gameInstance) {
+    constructor(gameInstance, levels) {
         this.game = gameInstance;
+        this.levels = levels;
+        this.currentLevelIndex = 0;
         this.commands = [];
         this.display = document.getElementById('code-output');
         this.isRunning = false;
+        this.levelSelect = document.getElementById('level-select');
+        this.levelHint = document.getElementById('level-hint');
+
+        this.initLevelUI();
     }
 
     add(direction) {
@@ -500,6 +534,45 @@ class CodeController {
     resetGame() {
         if(this.isRunning) return;
         this.game.reset();
+    }
+
+    initLevelUI() {
+        if (!this.levelSelect) return;
+        this.levelSelect.innerHTML = '';
+        this.levels.forEach((lvl, index) => {
+            const option = document.createElement('option');
+            option.value = String(index);
+            option.textContent = lvl.title;
+            this.levelSelect.appendChild(option);
+        });
+        this.setLevel(0);
+    }
+
+    setLevel(index) {
+        if (this.isRunning) return;
+        const nextIndex = Math.max(0, Math.min(this.levels.length - 1, index));
+        this.currentLevelIndex = nextIndex;
+        if (this.levelSelect) this.levelSelect.value = String(nextIndex);
+
+        const level = this.levels[nextIndex];
+        this.commands = [];
+        this.updateDisplay();
+        this.game.loadLevel(JSON.parse(JSON.stringify(level.map)), level.playerStart);
+
+        if (this.levelHint) {
+            this.levelHint.textContent = `难度：${level.difficulty}/5`;
+        }
+
+        const status = document.getElementById('status-2');
+        status.innerText = "请先输入指令，然后点击“执行程序”。";
+    }
+
+    prevLevel() {
+        this.setLevel(this.currentLevelIndex - 1);
+    }
+
+    nextLevel() {
+        this.setLevel(this.currentLevelIndex + 1);
     }
 
     async run() {
@@ -554,28 +627,175 @@ const map1 = [
 ];
 const playerStart1 = {x: 0, y: 2};
 
-// Level 2 Map (Based on PPT Source 81 - wider area, obstacle)
-const map2 = [
-    [0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0],
-    [0, 1, 0, 0, 0, 0], // 1 is obstacle box (treated as wall for simplicity or immovable block)
-    [0, 2, 0, 0, 0, 3]  // Box near player, Goal far right
+function isLevelSolvable(map, playerStart) {
+    const rows = map.length;
+    const cols = map[0].length;
+    const walls = (x, y) => {
+        if (x < 0 || x >= cols || y < 0 || y >= rows) return true;
+        return map[y][x] === 1;
+    };
+
+    const goals = [];
+    const boxes = [];
+    for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+            if (map[y][x] === 3) goals.push({x, y});
+            if (map[y][x] === 2) boxes.push({x, y});
+        }
+    }
+    if (boxes.length === 0 || goals.length === 0) return false;
+    if (boxes.length !== goals.length) return false;
+
+    const goalSet = new Set(goals.map(g => `${g.x},${g.y}`));
+    const dirs = [
+        {dx: 0, dy: -1},
+        {dx: 0, dy: 1},
+        {dx: -1, dy: 0},
+        {dx: 1, dy: 0}
+    ];
+
+    const sortBoxes = (arr) => arr.slice().sort((a, b) => (a.y * cols + a.x) - (b.y * cols + b.x));
+    const keyOf = (px, py, bxs) => {
+        const s = sortBoxes(bxs).map(b => `${b.x},${b.y}`).join('|');
+        return `${px},${py}#${s}`;
+    };
+    const hasBoxAt = (bxs, x, y) => bxs.some(b => b.x === x && b.y === y);
+    const boxIndexAt = (bxs, x, y) => bxs.findIndex(b => b.x === x && b.y === y);
+    const isWin = (bxs) => bxs.every(b => goalSet.has(`${b.x},${b.y}`));
+
+    const startKey = keyOf(playerStart.x, playerStart.y, boxes);
+    const visited = new Set([startKey]);
+    const queue = [{px: playerStart.x, py: playerStart.y, bxs: boxes}];
+    let head = 0;
+    const maxStates = 160000;
+
+    while (head < queue.length && visited.size < maxStates) {
+        const state = queue[head++];
+        if (isWin(state.bxs)) return true;
+
+        for (const d of dirs) {
+            const nx = state.px + d.dx;
+            const ny = state.py + d.dy;
+            if (walls(nx, ny)) continue;
+
+            const bi = boxIndexAt(state.bxs, nx, ny);
+            if (bi >= 0) {
+                const nbx = nx + d.dx;
+                const nby = ny + d.dy;
+                if (walls(nbx, nby)) continue;
+                if (hasBoxAt(state.bxs, nbx, nby)) continue;
+                const nextBoxes = state.bxs.map(b => ({...b}));
+                nextBoxes[bi] = {x: nbx, y: nby};
+                const k = keyOf(nx, ny, nextBoxes);
+                if (!visited.has(k)) {
+                    visited.add(k);
+                    queue.push({px: nx, py: ny, bxs: nextBoxes});
+                }
+            } else {
+                const k = keyOf(nx, ny, state.bxs);
+                if (!visited.has(k)) {
+                    visited.add(k);
+                    queue.push({px: nx, py: ny, bxs: state.bxs});
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+const codingLevelsAll = [
+    {
+        title: "第1关：入门直线",
+        difficulty: 1,
+        map: [
+            [0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0],
+            [0, 2, 0, 0, 1, 0],
+            [0, 0, 0, 0, 0, 3]
+        ],
+        playerStart: {x: 0, y: 3}
+    },
+    {
+        title: "第2关：绕开障碍",
+        difficulty: 2,
+        map: [
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 2, 0, 0, 1],
+            [1, 0, 1, 1, 1, 0, 1],
+            [1, 0, 0, 0, 0, 3, 1],
+            [1, 0, 0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1]
+        ],
+        playerStart: {x: 1, y: 5}
+    },
+    {
+        title: "第3关：长走廊推进",
+        difficulty: 3,
+        map: [
+            [1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 3, 0, 2, 0, 0, 1],
+            [1, 0, 1, 1, 1, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1]
+        ],
+        playerStart: {x: 1, y: 5}
+    },
+    {
+        title: "第4关：双箱双目标",
+        difficulty: 3,
+        map: [
+            [1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 2, 0, 3, 0, 0, 1],
+            [1, 0, 0, 1, 1, 0, 0, 1],
+            [1, 0, 0, 0, 0, 2, 0, 1],
+            [1, 0, 0, 0, 0, 0, 3, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1]
+        ],
+        playerStart: {x: 1, y: 5}
+    },
+    {
+        title: "第5关：双箱顺序很重要",
+        difficulty: 4,
+        map: [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 2, 1, 1, 0, 3, 0, 1],
+            [1, 0, 0, 1, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 1, 1, 0, 1],
+            [1, 0, 0, 0, 0, 0, 2, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 3, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1]
+        ],
+        playerStart: {x: 1, y: 6}
+    },
+    {
+        title: "第6关：三箱挑战",
+        difficulty: 5,
+        map: [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 2, 0, 1, 0, 3, 0, 1],
+            [1, 0, 0, 0, 1, 0, 0, 0, 1],
+            [1, 0, 2, 0, 0, 0, 3, 0, 1],
+            [1, 0, 0, 1, 1, 1, 0, 0, 1],
+            [1, 0, 2, 0, 0, 0, 3, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1]
+        ],
+        playerStart: {x: 1, y: 7}
+    }
 ];
-// Adjusting map2 to match PPT logic better: 
-// 1 = Fixed Wall/Block, 2 = Pushable Box.
-// In source 81, there's a box with X (pushable) and a star.
-// Let's make a clear puzzle.
-const map2_fixed = [
-    [0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0],
-    [0, 2, 0, 0, 1, 0], // Box at (1,2)
-    [0, 0, 0, 0, 0, 3]  // Goal at (5,3)
-];
-// Player starts bottom left (0,3)
+
+const codingLevels = codingLevelsAll.filter(lvl => isLevelSolvable(lvl.map, lvl.playerStart));
 
 const game1 = new SokobanGame('board-1', map1, playerStart1);
-const game2 = new SokobanGame('board-2', map2_fixed, {x: 0, y: 3}, true);
-const coder = new CodeController(game2);
+const game2 = new SokobanGame('board-2', JSON.parse(JSON.stringify(codingLevels[0].map)), codingLevels[0].playerStart, true);
+const coder = new CodeController(game2, codingLevels);
 
 // 键盘控制绑定 (仅限 Level 1)
 document.addEventListener('keydown', (e) => {

@@ -313,6 +313,73 @@
             display: inline-block;
             animation: countUp 0.5s ease;
         }
+        /* 柱状图样式 */
+        .chart-container {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            margin: 30px 0;
+            align-items: flex-end;
+            min-height: 300px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+        }
+        .chart-bar-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .chart-bar {
+            width: 180px;
+            background: linear-gradient(180deg, #4299e1 0%, #2b6cb0 100%);
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 15px 10px;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            transition: height 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            min-height: 30px;
+        }
+        .chart-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 100%);
+            pointer-events: none;
+        }
+        .chart-bar.purple {
+            background: linear-gradient(180deg, #9f7aea 0%, #805ad5 100%);
+        }
+        .chart-label {
+            font-size: 16px;
+            font-weight: bold;
+            color: #4a5568;
+            text-align: center;
+        }
+        .chart-time {
+            font-size: 14px;
+            color: #718096;
+            margin-top: 5px;
+        }
+        .chart-steps {
+            font-size: 14px;
+            color: #4299e1;
+            font-weight: bold;
+        }
+        .chart-bar.purple .chart-steps {
+            color: #9f7aea;
+        }
         /* 响应式调整 */
         @media (max-width: 768px) {
             .nav {
@@ -328,6 +395,13 @@
             }
             input {
                 width: 100%;
+            }
+            .chart-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .chart-bar {
+                width: 150px;
             }
         }
     </style>
@@ -492,24 +566,22 @@
                 <input type="number" id="number-input" min="2" value="100" onchange="calculateTime()">
             </div>
 
-            <div style="display: flex; gap: 20px; justify-content: center; margin: 30px 0; align-items: flex-end;">
-                <div style="text-align: center;">
-                    <div style="width: 200px; height: 200px; background: #4299e1; border-radius: 8px; display: flex; align-items: flex-end; justify-content: center; position: relative;">
-                        <div style="width: 100%; background: #2b6cb0; color: white; padding: 10px; border-radius: 0 0 8px 8px; font-weight: bold;">
-                            算法一（累加）<br>
-                            <span id="algorithm1-time">99秒</span>
-                        </div>
+            <div class="chart-container">
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" id="bar1" style="height: 30px;">
+                        <span id="algorithm1-time">99秒</span>
                     </div>
-                    <p style="margin-top: 10px; font-weight: bold;">99次加法</p>
+                    <div class="chart-label">算法一（累加）</div>
+                    <div class="chart-steps" id="algorithm1-steps">99次加法</div>
+                    <div class="chart-time">每步1秒</div>
                 </div>
-                <div style="text-align: center;">
-                    <div style="width: 200px; height: 50px; background: #9f7aea; border-radius: 8px; display: flex; align-items: flex-end; justify-content: center; position: relative;">
-                        <div style="width: 100%; background: #805ad5; color: white; padding: 10px; border-radius: 0 0 8px 8px; font-weight: bold;">
-                            算法二（公式）<br>
-                            <span id="algorithm2-time">26秒</span>
-                        </div>
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar purple" id="bar2" style="height: 30px;">
+                        <span id="algorithm2-time">26秒</span>
                     </div>
-                    <p style="margin-top: 10px; font-weight: bold;">1加+1乘+1除</p>
+                    <div class="chart-label">算法二（公式）</div>
+                    <div class="chart-steps" id="algorithm2-steps">1加+1乘+1除</div>
+                    <div class="chart-time">1+10+15=26秒</div>
                 </div>
             </div>
 
@@ -611,45 +683,67 @@
         <!-- 拓展提升 -->
         <section id="extension" class="content-section">
             <h2>🚀 拓展提升：计算圆周率的效率</h2>
-            <p>圆周率π是数学中的重要常数，科学家们一直在追求更精确的π值。下面两个程序用不同算法计算圆周率，我们来看看它们的效率差异！</p>
+            <p>圆周率π是数学中的重要常数，科学家们一直在追求更精确的π值。不同算法计算π的效率差异巨大！</p>
+
+            <div class="card" style="margin: 20px 0;">
+                <h3>📊 算法对比</h3>
+                <p>我们用两种不同的算法来计算圆周率：</p>
+                <ul style="margin-left: 20px; line-height: 2;">
+                    <li><strong>算法1（莱布尼茨公式）</strong>：π/4 = 1 - 1/3 + 1/5 - 1/7 + 1/9 - ...（收敛速度慢）</li>
+                    <li><strong>算法2（马青公式）</strong>：π = 16×arctan(1/5) - 4×arctan(1/239)（收敛速度快）</li>
+                </ul>
+            </div>
+
+            <div class="input-group">
+                <label for="pi-iterations">请输入计算精度（迭代次数，越大越精确）：</label>
+                <input type="number" id="pi-iterations" min="100" value="100000" step="10000">
+            </div>
 
             <div style="display: flex; flex-wrap: wrap; gap: 20px; margin: 30px 0;">
                 <div class="card warning" style="flex: 1; min-width: 300px;">
-                    <h3>算法1：传统方法</h3>
-                    <p>17世纪学者提出的计算方法</p>
+                    <h3>算法1：莱布尼茨公式</h3>
                     <p>运行状态：<span id="pi-status1">未运行</span></p>
                     <p>计算结果：<span id="pi-result1" style="font-size: 20px; font-weight: bold;">--</span></p>
                     <p>总用时：<span id="pi-time1" style="font-size: 24px; color: #e53e3e; font-weight: bold;">0.000</span> 秒</p>
                     <div class="progress-container">
                         <div class="progress-bar" id="pi-progress1" style="width: 0%;">0%</div>
                     </div>
+                    <p style="margin-top: 10px; font-size: 14px; color: #718096;">特点：简单易懂，但收敛慢，需要大量迭代</p>
                 </div>
 
                 <div class="card secondary" style="flex: 1; min-width: 300px;">
-                    <h3>算法2：优化方法</h3>
-                    <p>后来学者提出的高效算法</p>
+                    <h3>算法2：马青公式</h3>
                     <p>运行状态：<span id="pi-status2">未运行</span></p>
                     <p>计算结果：<span id="pi-result2" style="font-size: 20px; font-weight: bold;">--</span></p>
                     <p>总用时：<span id="pi-time2" style="font-size: 24px; color: #48bb78; font-weight: bold;">0.000</span> 秒</p>
                     <div class="progress-container">
                         <div class="progress-bar" id="pi-progress2" style="width: 0%; background: linear-gradient(90deg, #9f7aea, #48bb78);">0%</div>
                     </div>
+                    <p style="margin-top: 10px; font-size: 14px; color: #718096;">特点：收敛速度快，是古代计算π的高效方法</p>
                 </div>
             </div>
 
             <div style="text-align: center; margin: 30px 0;">
                 <button class="btn" onclick="runPiSimulation()">运行两个算法</button>
                 <button class="btn danger" onclick="resetPiSimulation()">重置</button>
+                <button class="btn secondary" onclick="explainPiCalculation()">了解更多算法</button>
             </div>
 
             <div class="card" id="pi-result" style="display: none;">
-                <h3>结果分析</h3>
+                <h3>🎯 结果分析</h3>
                 <p>算法2的效率远远高于算法1！</p>
-                <ul>
-                    <li>算法1用时约 <span id="pi-time1-display">1.73</span> 秒，精确到3.1415左右</li>
-                    <li>算法2用时约 <span id="pi-time2-display">0.005</span> 秒，精确到3.1415926535以上</li>
+                <ul style="margin-left: 20px; line-height: 2;">
+                    <li>算法1用时约 <span id="pi-time1-display">1.73</span> 秒</li>
+                    <li>算法2用时约 <span id="pi-time2-display">0.005</span> 秒</li>
+                    <li>算法2比算法1快了约 <span id="pi-speedup" style="color: #48bb78; font-weight: bold;">--</span> 倍！</li>
                 </ul>
                 <p>高效的算法不仅能节省时间，还能获得更精确的结果！这就是算法优化的魅力～</p>
+            </div>
+
+            <div class="card" style="margin-top: 30px;">
+                <h3>💡 小知识</h3>
+                <p><strong>中国古代数学家祖冲之</strong>在1500多年前就用割圆术计算出了π的7位小数精度，保持了近千年的世界纪录！他用的算法在当时是非常先进的。</p>
+                <p>现代计算机使用更高效的算法（如Chudnovsky算法），已经计算出π的<strong>100万亿位</strong>小数！</p>
             </div>
 
             <div style="text-align: center; margin-top: 30px;">
@@ -892,10 +986,23 @@
             // 算法一：n-1次加法
             const time1 = (n - 1) * addTime;
             document.getElementById('algorithm1-time').textContent = `${time1}秒`;
+            document.getElementById('algorithm1-steps').textContent = `${n-1}次加法`;
 
             // 算法二：1加+1乘+1除
             const time2 = addTime + mulTime + divTime;
             document.getElementById('algorithm2-time').textContent = `${time2}秒`;
+            document.getElementById('algorithm2-steps').textContent = `1加+1乘+1除`;
+
+            // 更新柱状图高度
+            const maxTime = Math.max(time1, time2, 100);
+            const maxHeight = 250;
+            const minHeight = 30;
+
+            const height1 = Math.max(minHeight, (time1 / maxTime) * maxHeight);
+            const height2 = Math.max(minHeight, (time2 / maxTime) * maxHeight);
+
+            document.getElementById('bar1').style.height = `${height1}px`;
+            document.getElementById('bar2').style.height = `${height2}px`;
         }
 
         // 编程模拟
@@ -918,58 +1025,75 @@
             time2.textContent = '0.000';
             progress1.style.width = '0%';
             progress2.style.width = '0%';
+            progress1.textContent = '0%';
+            progress2.textContent = '0%';
             resultDiv.style.display = 'none';
 
-            // 模拟算法一：循环累加
-            let startTime1 = performance.now();
-            let progress = 0;
-            const interval1 = setInterval(() => {
-                progress += 10;
-                progress1.style.width = `${Math.min(progress, 100)}%`;
-                progress1.textContent = `${Math.min(progress, 100)}%`;
+            // 真实模拟算法一：循环累加
+            const startTime1 = performance.now();
+            let sum1 = 0;
+            let completed1 = 0;
+            const batchSize = Math.max(1, Math.floor(repeatCount / 100));
 
-                if (progress >= 100) {
-                    clearInterval(interval1);
-                    // 优化：使用公式计算代替循环累加
-                    let sum = 0;
-                    for (let i = 0; i < Math.min(repeatCount, 1000); i++) {
-                        sum = (1000 * 1001) / 2;
+            function runAlgorithm1Batch() {
+                const batchEnd = Math.min(completed1 + batchSize, repeatCount);
+                for (let i = completed1; i < batchEnd; i++) {
+                    for (let j = 1; j <= 1000; j++) {
+                        sum1 += j;
                     }
+                }
+                completed1 = batchEnd;
+                const progress = (completed1 / repeatCount) * 100;
+                progress1.style.width = `${progress}%`;
+                progress1.textContent = `${progress.toFixed(1)}%`;
+
+                if (completed1 < repeatCount) {
+                    requestAnimationFrame(runAlgorithm1Batch);
+                } else {
                     const endTime1 = performance.now();
                     const duration1 = (endTime1 - startTime1).toFixed(3);
                     time1.textContent = duration1;
                     status1.textContent = '已完成';
+                    status1.style.color = '#48bb78';
                 }
-            }, 100);
+            }
 
-            // 模拟算法二：公式计算
-            let startTime2 = performance.now();
-            let progress2Val = 0;
-            const interval2 = setInterval(() => {
-                progress2Val += 50;
-                progress2.style.width = `${Math.min(progress2Val, 100)}%`;
-                progress2.textContent = `${Math.min(progress2Val, 100)}%`;
+            // 真实模拟算法二：公式计算
+            const startTime2 = performance.now();
+            let sum2 = 0;
+            let completed2 = 0;
+            const batchSize2 = Math.max(1, Math.floor(repeatCount / 10));
 
-                if (progress2Val >= 100) {
-                    clearInterval(interval2);
-                    // 实际模拟计算
-                    let sum = 0;
-                    for (let i = 0; i < repeatCount; i++) {
-                        sum = (1 + 1000) * 1000 / 2;
-                    }
+            function runAlgorithm2Batch() {
+                const batchEnd = Math.min(completed2 + batchSize2, repeatCount);
+                for (let i = completed2; i < batchEnd; i++) {
+                    sum2 = (1 + 1000) * 1000 / 2;
+                }
+                completed2 = batchEnd;
+                const progress = (completed2 / repeatCount) * 100;
+                progress2.style.width = `${progress}%`;
+                progress2.textContent = `${progress.toFixed(1)}%`;
+
+                if (completed2 < repeatCount) {
+                    requestAnimationFrame(runAlgorithm2Batch);
+                } else {
                     const endTime2 = performance.now();
                     const duration2 = (endTime2 - startTime2).toFixed(3);
                     time2.textContent = duration2;
                     status2.textContent = '已完成';
+                    status2.style.color = '#48bb78';
 
                     // 显示结果
                     resultCount.textContent = repeatCount;
-                    if (parseFloat(duration1) > parseFloat(duration2)) {
-                        resultText.textContent = `当重复执行${repeatCount}次时，公式计算的效率远远高于循环累加！数据量越大，这种差异越明显～`;
-                    }
+                    const speedup = (parseFloat(time1.textContent) / parseFloat(duration2)).toFixed(2);
+                    resultText.innerHTML = `当重复执行${repeatCount}次时，公式计算的效率远远高于循环累加！<br><strong>算法二比算法一快了约 ${speedup} 倍！</strong><br>数据量越大，这种差异越明显～`;
                     resultDiv.style.display = 'block';
                 }
-            }, 50);
+            }
+
+            // 同时运行两个算法
+            runAlgorithm1Batch();
+            setTimeout(runAlgorithm2Batch, 100);
         }
 
         // 重置模拟
@@ -987,6 +1111,7 @@
 
         // 圆周率模拟
         function runPiSimulation() {
+            const iterations = parseInt(document.getElementById('pi-iterations').value);
             const status1 = document.getElementById('pi-status1');
             const status2 = document.getElementById('pi-status2');
             const result1 = document.getElementById('pi-result1');
@@ -1006,46 +1131,99 @@
             time2.textContent = '0.000';
             progress1.style.width = '0%';
             progress2.style.width = '0%';
+            progress1.textContent = '0%';
+            progress2.textContent = '0%';
             resultDiv.style.display = 'none';
 
-            // 模拟算法1：慢速
-            let progress1Val = 0;
-            const interval1 = setInterval(() => {
-                progress1Val += 2;
-                progress1.style.width = `${Math.min(progress1Val, 100)}%`;
-                progress1.textContent = `${Math.min(progress1Val, 100)}%`;
+            // 算法1：莱布尼茨公式（慢速）
+            const startTime1 = performance.now();
+            let pi1 = 0;
+            let completed1 = 0;
+            const batchSize1 = Math.max(1, Math.floor(iterations / 100));
 
-                if (progress1Val >= 100) {
-                    clearInterval(interval1);
-                    // 模拟计算结果
-                    result1.textContent = '3.1415726535';
-                    time1.textContent = '1.731';
-                    document.getElementById('pi-time1-display').textContent = '1.731';
-                    status1.textContent = '已完成';
+            function runAlgorithm1Batch() {
+                const batchEnd = Math.min(completed1 + batchSize1, iterations);
+                for (let i = completed1; i < batchEnd; i++) {
+                    pi1 += Math.pow(-1, i) / (2 * i + 1);
                 }
-            }, 30);
+                completed1 = batchEnd;
+                const progress = (completed1 / iterations) * 100;
+                progress1.style.width = `${progress}%`;
+                progress1.textContent = `${progress.toFixed(1)}%`;
 
-            // 模拟算法2：快速
-            let progress2Val = 0;
-            const interval2 = setInterval(() => {
-                progress2Val += 100;
-                progress2.style.width = `${Math.min(progress2Val, 100)}%`;
-                progress2.textContent = `${Math.min(progress2Val, 100)}%`;
+                if (completed1 < iterations) {
+                    requestAnimationFrame(runAlgorithm1Batch);
+                } else {
+                    const endTime1 = performance.now();
+                    const duration1 = (endTime1 - startTime1).toFixed(3);
+                    result1.textContent = (pi1 * 4).toFixed(10);
+                    time1.textContent = duration1;
+                    document.getElementById('pi-time1-display').textContent = duration1;
+                    status1.textContent = '已完成';
+                    status1.style.color = '#48bb78';
+                }
+            }
 
-                if (progress2Val >= 100) {
-                    clearInterval(interval2);
-                    // 模拟计算结果
-                    result2.textContent = '3.141592653588602';
-                    time2.textContent = '0.005';
-                    document.getElementById('pi-time2-display').textContent = '0.005';
+            // 算法2：马青公式（快速）
+            const startTime2 = performance.now();
+            let completed2 = 0;
+            const batchSize2 = Math.max(1, Math.floor(iterations / 10));
+
+            function runAlgorithm2Batch() {
+                const batchEnd = Math.min(completed2 + batchSize2, iterations);
+                for (let i = 0; i < (batchEnd - completed2); i++) {
+                    // 马青公式：π = 16×arctan(1/5) - 4×arctan(1/239)
+                    // 使用泰勒级数计算arctan
+                    let arctan1_5 = 0;
+                    let arctan1_239 = 0;
+                    const terms = 20; // 只需要很少的项就能达到高精度
+                    
+                    for (let j = 0; j < terms; j++) {
+                        arctan1_5 += Math.pow(-1, j) * Math.pow(1/5, 2*j+1) / (2*j+1);
+                        arctan1_239 += Math.pow(-1, j) * Math.pow(1/239, 2*j+1) / (2*j+1);
+                    }
+                    
+                    let pi2 = 16 * arctan1_5 - 4 * arctan1_239;
+                }
+                completed2 = batchEnd;
+                const progress = (completed2 / iterations) * 100;
+                progress2.style.width = `${progress}%`;
+                progress2.textContent = `${progress.toFixed(1)}%`;
+
+                if (completed2 < iterations) {
+                    requestAnimationFrame(runAlgorithm2Batch);
+                } else {
+                    const endTime2 = performance.now();
+                    const duration2 = (endTime2 - startTime2).toFixed(3);
+                    
+                    // 最终计算一次精确值
+                    let arctan1_5 = 0;
+                    let arctan1_239 = 0;
+                    const terms = 50;
+                    for (let j = 0; j < terms; j++) {
+                        arctan1_5 += Math.pow(-1, j) * Math.pow(1/5, 2*j+1) / (2*j+1);
+                        arctan1_239 += Math.pow(-1, j) * Math.pow(1/239, 2*j+1) / (2*j+1);
+                    }
+                    let pi2 = 16 * arctan1_5 - 4 * arctan1_239;
+                    
+                    result2.textContent = pi2.toFixed(10);
+                    time2.textContent = duration2;
+                    document.getElementById('pi-time2-display').textContent = duration2;
                     status2.textContent = '已完成';
+                    status2.style.color = '#48bb78';
 
                     // 显示结果
                     setTimeout(() => {
+                        const speedup = (parseFloat(duration1) / parseFloat(duration2)).toFixed(2);
+                        document.getElementById('pi-speedup').textContent = speedup;
                         resultDiv.style.display = 'block';
                     }, 500);
                 }
-            }, 10);
+            }
+
+            // 同时运行两个算法
+            runAlgorithm1Batch();
+            setTimeout(runAlgorithm2Batch, 100);
         }
 
         // 重置圆周率模拟
