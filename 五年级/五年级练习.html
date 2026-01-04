@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五年级信息技术期末大挑战</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --bg-color: #f0f4f8;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --correct-color: #27ae60;
+            --wrong-color: #e74c3c;
+            --accent-color: #f39c12;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        h1 { color: var(--primary-color); margin-bottom: 10px; }
+        .subtitle { color: #7f8c8d; font-size: 1.1rem; }
+
+        .quiz-info {
+            display: flex;
+            justify-content: space-between;
+            background: #eef2f7;
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .question-group {
+            margin-bottom: 35px;
+            padding: 20px;
+            border-radius: 12px;
+            background: #fff;
+            border: 1px solid #eee;
+            transition: all 0.2s;
+        }
+
+        .question-group:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .question-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            display: block;
+            line-height: 1.5;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .option-label {
+            padding: 15px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: block;
+            text-align: center;
+        }
+
+        .option-label:hover {
+            background: #eef2f7;
+            border-color: var(--primary-color);
+        }
+
+        input[type="radio"] {
+            display: none;
+        }
+
+        input[type="radio"]:checked + .option-label {
+            background-color: #e8f4fd;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .btn-submit {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color), #357abd);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 40px;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.5);
+        }
+
+        .result-msg {
+            margin-top: 30px;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            font-size: 1.3rem;
+            line-height: 1.6;
+        }
+
+        .result-msg.success { background-color: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
+        .result-msg.error { background-color: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
+
+        .explanation {
+            margin-top: 15px;
+            padding: 12px;
+            background: #fff9db;
+            border-left: 4px solid #fab005;
+            font-size: 0.95rem;
+            color: #666;
+            display: none;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .show-answer .explanation { display: block; }
+        .correct-answer { color: var(--correct-color); font-weight: bold; }
+
+        .nav-link {
+            display: inline-block;
+            margin-top: 30px;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .section-header {
+            color: var(--accent-color);
+            border-left: 5px solid var(--accent-color);
+            padding-left: 15px;
+            margin: 40px 0 20px;
+        }
+
+        @media (max-width: 600px) {
+            .options { grid-template-columns: 1fr; }
+            .container { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>五年级信息技术期末大挑战</h1>
+        <p class="subtitle">配套课件内容 · 15 课全覆盖 · 30 道精选题目</p>
+    </header>
+
+    <div class="quiz-info">
+        <span>题目总数：30 道</span>
+        <span>满分：100 分</span>
+    </div>
+
+    <form id="quizForm">
+        <h2 class="section-header">一、判断题 (每题约 2.7 分，共 40 分)</h2>
+
+        <div class="question-group" data-answer="A">
+            <span class="question-title">1. 算法是通过明确的、可执行的操作步骤描述的问题求解方案。</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q1" value="A"> <span class="option-label">对</span></label>
+            
+                <label><input type="radio" name="q1" value="B"> <span class="option-label">错</span></label>
+            
+            </div>
+            <p class="explanation">解析：算法要把步骤写清楚，并且能实际执行。</p>
+        </div>
+        
+        <div class="question-group" data-answer="A">
+            <span class="question-title">2. 像人脸识别、智能锁算法，都是算法在社会生活中的具体应用案例。</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q2" value="A"> <span class="option-label">对</span></label>
+            
+                <label><input type="radio" name="q2" value="B"> <span class="option-label">错</span></label>
+            
+            </div>
+            <p class="explanation">解析：很多智能应用背后都依赖算法来做识别与判断。</p>
+        </div>
+        
+        <div class="question-group" data-answer="A">
+            <span class="question-title">3. 算法的基本结构包括顺序结构、分支结构和循环结构。</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q3" value="A"> <span class="option-label">对</span></label>
+            
+                <label><input type="radio" name="q3" value="B"> <span class="option-label">错</span></label>
+            
+            </div>
+            <p class="explanation">解析：这三种结构是构成算法的基础逻辑方式。</p>
+        </div>
+        
+        <div class="question-group" data-answer="A">
+            <span class="question-title">4. 算法的基本流程是“输入 → 处理 → 输出”。</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q4" value="A"> <span class="option-label">对</span></label>
+            
+                <label><input type="radio" name="q4" value="B"> <span class="option-label">错</span></label>
+            
+            </div>
+            <p class="explanation">解析：先获取信息（输入），再处理计算，最后给出结果（输出）。</p>
+        </div>
+        
+        <div class="question-group" data-answer="A">
+            <span class="question-title">5. 用流程图表示顺序结构时，能清晰看到步骤之间的关系和执行顺序。</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q5" value="A"> <span class="option-label">对</span></label>
+            
+                <label><input type="radio" name="q5" value="B"> <span class="option-label">错</span></label>
+            
+            </div>
+            <p class="explanation">解析：流程图能把“先做什么、再做什么”画得更直观。</p>
+        </div>
+        
+        <div class="question-group" data-answer="B">
+            <span class="question-title">6. 在流程图中，菱形框通常用来表示“开始”或“结束”。</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q6" value="A"> <span class="option-label">对</span></label>
+            
+                <label><input type="radio" name="q6" value="B"> <span class="option-label">错</span></label>
+            
+            </div>
+            <p class="explanation">解析：菱形框表示判断，圆角矩形表示开始/结束。</p>
+        </div>
+        
+        <div class="question-group" data-answer="B">
+            <span class="question-title">7. Python中 print() 函数的作用是向计算机输入数据。</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q7" value="A"> <span class="option-label">对</span></label>
+            
+                <label><input type="radio" name="q7" value="B"> <span class="option-label">错</span></label>
+            
+            </div>
+            <p class="explanation">解析：print() 用于输出，input() 用于输入。</p>
+        </div>
+        
+        <div class="question-group" data-answer="A">
+            <span class="question-title">8. Python中 input() 函数用于获取用户的键盘输入。</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q8" value="A"> <span class="option-label">对</span></label>
+            
+                <label><input type="radio" name="q8" value="B"> <span class="option-label">错</span></label>
+            
+            </div>
+            <p class="explanation">解析：input() 函数用于接收用户输入的数据。</p>
+        </div>
+        
+        <div class="question-group" data-answer="A">
+            <span class="question-title">9. 在有序数据中查找时，二分法查找通常比顺序查找（挨个找）要快得多。</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q9" value="A"> <span class="option-label">对</span></label>
+            
+                <label><input type="radio" name="q9" value="B"> <span class="option-label">错</span></label>
+            
+            </div>
+            <p class="explanation">解析：二分法通过每次排除一半数据，查找效率更高。</p>
+        </div>
+        
+        <div class="question-group" data-answer="A">
+            <span class="question-title">10. 汉诺塔圆环数量为奇数时，第一步把最小圆环移到柱3，所用步骤最少。</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q10" value="A"> <span class="option-label">对</span></label>
+            
+                <label><input type="radio" name="q10" value="B"> <span class="option-label">错</span></label>
+            
+            </div>
+            <p class="explanation">解析：课件规律总结：奇数先移到柱3；偶数先移到柱2更省步。</p>
+        </div>
+        
+        <div class="question-group" data-answer="A">
+            <span class="question-title">11. 凯撒密码通过将字母表中的字母移动一定的位数来加密，属于移位加密。</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q11" value="A"> <span class="option-label">对</span></label>
+            
+                <label><input type="radio" name="q11" value="B"> <span class="option-label">错</span></label>
+            
+            </div>
+            <p class="explanation">解析：凯撒密码是典型的替换加密技术。</p>
+        </div>
+        
+        <div class="question-group" data-answer="B">
+            <span class="question-title">12. 循环结构就是无休止地重复执行某段代码，永远停不下来。</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q12" value="A"> <span class="option-label">对</span></label>
+            
+                <label><input type="radio" name="q12" value="B"> <span class="option-label">错</span></label>
+            
+            </div>
+            <p class="explanation">解析：循环通常需要有终止条件，否则会变成死循环。</p>
+        </div>
+        
+        <div class="question-group" data-answer="A">
+            <span class="question-title">13. 一个有效的算法必须至少有一个输出结果。</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q13" value="A"> <span class="option-label">对</span></label>
+            
+                <label><input type="radio" name="q13" value="B"> <span class="option-label">错</span></label>
+            
+            </div>
+            <p class="explanation">解析：算法必须有输出，告诉我们问题的结果。</p>
+        </div>
+        
+        <div class="question-group" data-answer="B">
+            <span class="question-title">14. 算法的步骤可以是无限的，只要能解决问题就行。</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q14" value="A"> <span class="option-label">对</span></label>
+            
+                <label><input type="radio" name="q14" value="B"> <span class="option-label">错</span></label>
+            
+            </div>
+            <p class="explanation">解析：算法必须具有有穷性，即在有限步骤内完成。</p>
+        </div>
+        
+        <div class="question-group" data-answer="B">
+            <span class="question-title">15. 计算机不仅计算速度快，还能自动编写算法，不需要人类参与。</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q15" value="A"> <span class="option-label">对</span></label>
+            
+                <label><input type="radio" name="q15" value="B"> <span class="option-label">错</span></label>
+            
+            </div>
+            <p class="explanation">解析：目前计算机主要执行人类编写的算法，虽然AI在发展，但基础算法仍需人类设计。</p>
+        </div>
+                <h2 class="section-header">二、单选题 (每题 4 分，共 60 分)</h2>
+
+        <div class="question-group" data-answer="A">
+            <span class="question-title">16. 算法的基本处理流程通常是：</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q16" value="A"> <span class="option-label">A. 输入 -> 处理 -> 输出</span></label>
+            
+                <label><input type="radio" name="q16" value="B"> <span class="option-label">B. 输出 -> 处理 -> 输入</span></label>
+            
+                <label><input type="radio" name="q16" value="C"> <span class="option-label">C. 处理 -> 输入 -> 输出</span></label>
+            
+            </div>
+            <p class="explanation">解析：基本流程就是：输入 → 处理 → 输出。</p>
+        </div>
+        
+        <div class="question-group" data-answer="B">
+            <span class="question-title">17. 在算法流程图中，用于表示“判断”的图形符号是：</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q17" value="A"> <span class="option-label">A. 矩形框</span></label>
+            
+                <label><input type="radio" name="q17" value="B"> <span class="option-label">B. 菱形框</span></label>
+            
+                <label><input type="radio" name="q17" value="C"> <span class="option-label">C. 平行四边形框</span></label>
+            
+            </div>
+            <p class="explanation">解析：菱形框用于条件判断。</p>
+        </div>
+        
+        <div class="question-group" data-answer="C">
+            <span class="question-title">18. 以下哪项不是算法必须具备的特征？</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q18" value="A"> <span class="option-label">A. 有穷性（步骤有限）</span></label>
+            
+                <label><input type="radio" name="q18" value="B"> <span class="option-label">B. 确定性（步骤清晰）</span></label>
+            
+                <label><input type="radio" name="q18" value="C"> <span class="option-label">C. 模糊性（大概差不多就行）</span></label>
+            
+            </div>
+            <p class="explanation">解析：算法必须是确定的，不能模棱两可。</p>
+        </div>
+        
+        <div class="question-group" data-answer="D">
+            <span class="question-title">19. 算法中的每一个步骤都应该是：</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q19" value="A"> <span class="option-label">A. 可选的</span></label>
+            
+                <label><input type="radio" name="q19" value="B"> <span class="option-label">B. 随意的</span></label>
+            
+                <label><input type="radio" name="q19" value="C"> <span class="option-label">C. 模糊的</span></label>
+
+                <label><input type="radio" name="q19" value="D"> <span class="option-label">D. 明确的</span></label>
+            
+            </div>
+            <p class="explanation">解析：算法步骤必须明确，才能保证别人照着做也能得到同样结果。</p>
+        </div>
+        
+        <div class="question-group" data-answer="B">
+            <span class="question-title">20. “如果明天下雨，我就带伞；否则我就戴帽子。” 这种逻辑属于什么结构？</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q20" value="A"> <span class="option-label">A. 顺序结构</span></label>
+            
+                <label><input type="radio" name="q20" value="B"> <span class="option-label">B. 分支结构（选择结构）</span></label>
+            
+                <label><input type="radio" name="q20" value="C"> <span class="option-label">C. 循环结构</span></label>
+            
+            </div>
+            <p class="explanation">解析：根据条件选择不同的执行路径。</p>
+        </div>
+        
+        <div class="question-group" data-answer="C">
+            <span class="question-title">21. 如果我们要计算从1加到100的总和，最适合使用什么结构来实现？</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q21" value="A"> <span class="option-label">A. 顺序结构</span></label>
+            
+                <label><input type="radio" name="q21" value="B"> <span class="option-label">B. 分支结构</span></label>
+            
+                <label><input type="radio" name="q21" value="C"> <span class="option-label">C. 循环结构</span></label>
+            
+            </div>
+            <p class="explanation">解析：重复执行加法操作，适合用循环。</p>
+        </div>
+        
+        <div class="question-group" data-answer="B">
+            <span class="question-title">22. 使用“二分法”进行查找的前提条件是，数据必须是：</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q22" value="A"> <span class="option-label">A. 杂乱无章的</span></label>
+            
+                <label><input type="radio" name="q22" value="B"> <span class="option-label">B. 已经排列有序的</span></label>
+            
+                <label><input type="radio" name="q22" value="C"> <span class="option-label">C. 只有几个数据的</span></label>
+            
+            </div>
+            <p class="explanation">解析：二分法依赖于数据的有序性。</p>
+        </div>
+        
+        <div class="question-group" data-answer="C">
+            <span class="question-title">23. 凯撒密码中，如果规则是“向后移动3位”，那么字母 A 会被加密成：</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q23" value="A"> <span class="option-label">A. B</span></label>
+            
+                <label><input type="radio" name="q23" value="B"> <span class="option-label">B. C</span></label>
+            
+                <label><input type="radio" name="q23" value="C"> <span class="option-label">C. D</span></label>
+            
+            </div>
+            <p class="explanation">解析：A -> B -> C -> D。</p>
+        </div>
+        
+        <div class="question-group" data-answer="B">
+            <span class="question-title">24. 在Python代码中，if 语句或 for 语句的末尾必须加上什么标点符号？</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q24" value="A"> <span class="option-label">A. 分号 (;)</span></label>
+            
+                <label><input type="radio" name="q24" value="B"> <span class="option-label">B. 冒号 (:)</span></label>
+            
+                <label><input type="radio" name="q24" value="C"> <span class="option-label">C. 逗号 (,)</span></label>
+            
+            </div>
+            <p class="explanation">解析：Python语法规定控制语句末尾使用冒号。</p>
+        </div>
+        
+        <div class="question-group" data-answer="C">
+            <span class="question-title">25. 流程图中，平行四边形框通常表示：</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q25" value="A"> <span class="option-label">A. 处理/计算过程</span></label>
+            
+                <label><input type="radio" name="q25" value="B"> <span class="option-label">B. 判断条件</span></label>
+            
+                <label><input type="radio" name="q25" value="C"> <span class="option-label">C. 输入/输出</span></label>
+            
+            </div>
+            <p class="explanation">解析：平行四边形框用于表示输入或输出操作。</p>
+        </div>
+        
+        <div class="question-group" data-answer="C">
+            <span class="question-title">26. 判断闰年的规则中：年份能被4整除且不能被100整除，或者能被___整除。</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q26" value="A"> <span class="option-label">A. 200</span></label>
+            
+                <label><input type="radio" name="q26" value="B"> <span class="option-label">B. 300</span></label>
+            
+                <label><input type="radio" name="q26" value="C"> <span class="option-label">C. 400</span></label>
+            
+            </div>
+            <p class="explanation">解析：公历年份是整百数的，必须是400的倍数才是闰年。</p>
+        </div>
+        
+        <div class="question-group" data-answer="B">
+            <span class="question-title">27. 汉诺塔有 3 个圆环时，最少需要移动几步才能完成？</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q27" value="A"> <span class="option-label">A. 3 步</span></label>
+            
+                <label><input type="radio" name="q27" value="B"> <span class="option-label">B. 7 步</span></label>
+            
+                <label><input type="radio" name="q27" value="C"> <span class="option-label">C. 9 步</span></label>
+            
+            </div>
+            <p class="explanation">解析：最少步数是 2^n − 1，n=3 时为 7 步。</p>
+        </div>
+        
+        <div class="question-group" data-answer="B">
+            <span class="question-title">28. 在1-100的数字中猜一个数，使用二分法，最多只需要猜几次就能猜中？</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q28" value="A"> <span class="option-label">A. 50次</span></label>
+            
+                <label><input type="radio" name="q28" value="B"> <span class="option-label">B. 7次</span></label>
+            
+                <label><input type="radio" name="q28" value="C"> <span class="option-label">C. 10次</span></label>
+            
+            </div>
+            <p class="explanation">解析：2的7次方是128，涵盖100以内。</p>
+        </div>
+        
+        <div class="question-group" data-answer="B">
+            <span class="question-title">29. 为了保护个人信息安全，设置密码时应该：</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q29" value="A"> <span class="option-label">A. 使用简单的数字如123456</span></label>
+            
+                <label><input type="radio" name="q29" value="B"> <span class="option-label">B. 使用字母、数字、符号组合的复杂密码</span></label>
+            
+                <label><input type="radio" name="q29" value="C"> <span class="option-label">C. 把密码写在电脑屏幕上</span></label>
+            
+            </div>
+            <p class="explanation">解析：复杂密码能增加破解难度。</p>
+        </div>
+        
+        <div class="question-group" data-answer="B">
+            <span class="question-title">30. 在Python中，想要让程序重复执行一段代码，可以使用：</span>
+            <div class="options">
+        
+                <label><input type="radio" name="q30" value="A"> <span class="option-label">A. if 语句</span></label>
+            
+                <label><input type="radio" name="q30" value="B"> <span class="option-label">B. for 或 while 语句</span></label>
+            
+                <label><input type="radio" name="q30" value="C"> <span class="option-label">C. print 语句</span></label>
+            
+            </div>
+            <p class="explanation">解析：for 和 while 是Python中的循环语句。</p>
+        </div>
+        
+        <button type="button" class="btn-submit" onclick="checkAnswers()">提交答案</button>
+    </form>
+
+    <div id="result" class="result-msg"></div>
+
+    <div style="text-align: center;">
+        <a href="五年级复习.html" class="nav-link">← 返回复习专题页面</a>
+    </div>
+</div>
+
+<script>
+    function checkAnswers() {
+        const form = document.getElementById('quizForm');
+        const questions = document.querySelectorAll('.question-group');
+        let score = 0;
+        let unanswered = 0;
+
+        questions.forEach((q, index) => {
+            const qName = 'q' + (index + 1);
+            const selected = form.querySelector(`input[name="${qName}"]:checked`);
+            
+            if (!selected) {
+                unanswered++;
+            } else if (selected.value === q.getAttribute('data-answer')) {
+                if (index < 15) {
+                    score += 2.67; // 判断题 约2.6分
+                } else {
+                    score += 4; // 单选题 4分
+                }
+            }
+        });
+
+        if (unanswered > 0) {
+            alert('你还有 ' + unanswered + ' 道题没有做完哦！加油！');
+            return;
+        }
+
+        // 最终得分取整
+        const finalScore = Math.min(100, Math.round(score));
+        
+        const resultDiv = document.getElementById('result');
+        resultDiv.style.display = 'block';
+        
+        let comment = '';
+        if (finalScore === 100) comment = '太棒了！你已经掌握得非常扎实！';
+        else if (finalScore >= 80) comment = '很好！继续保持，多练一练更稳。';
+        else if (finalScore >= 60) comment = '及格啦！把错题对应的知识点再复习一下。';
+        else comment = '再加把劲！先看复习页面，再回来挑战一次。';
+
+        resultDiv.innerHTML = `你的得分是：<strong>${finalScore}</strong> 分<br>${comment}`;
+        resultDiv.className = 'result-msg ' + (finalScore >= 60 ? 'success' : 'error');
+
+        document.querySelector('.container').classList.add('show-answer');
+        
+        // 滚动到结果
+        resultDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>

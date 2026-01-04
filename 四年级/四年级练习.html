@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>四年级信息技术期末大挑战</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --bg-color: #f0f4f8;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --correct-color: #27ae60;
+            --wrong-color: #e74c3c;
+            --accent-color: #f39c12;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        h1 { color: var(--primary-color); margin-bottom: 10px; }
+        .subtitle { color: #7f8c8d; font-size: 1.1rem; }
+
+        .quiz-info {
+            display: flex;
+            justify-content: space-between;
+            background: #eef2f7;
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .question-group {
+            margin-bottom: 35px;
+            padding: 20px;
+            border-radius: 12px;
+            background: #fff;
+            border: 1px solid #eee;
+            transition: all 0.2s;
+        }
+
+        .question-group:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .question-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            display: block;
+            line-height: 1.5;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .option-label {
+            padding: 15px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: block;
+            text-align: center;
+        }
+
+        .option-label:hover {
+            background: #eef2f7;
+            border-color: var(--primary-color);
+        }
+
+        input[type="radio"] {
+            display: none;
+        }
+
+        input[type="radio"]:checked + .option-label {
+            background-color: #e8f4fd;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .tf-options {
+            display: flex;
+            gap: 20px;
+        }
+
+        .btn-submit {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color), #357abd);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 40px;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.5);
+        }
+
+        .result-msg {
+            margin-top: 30px;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            font-size: 1.3rem;
+            line-height: 1.6;
+        }
+
+        .result-msg.success { background-color: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
+        .result-msg.error { background-color: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
+
+        .explanation {
+            margin-top: 15px;
+            padding: 12px;
+            background: #fff9db;
+            border-left: 4px solid #fab005;
+            font-size: 0.95rem;
+            color: #666;
+            display: none;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .show-answer .explanation { display: block; }
+        .correct-answer { color: var(--correct-color); font-weight: bold; }
+
+        .nav-link {
+            display: inline-block;
+            margin-top: 30px;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .section-header {
+            color: var(--accent-color);
+            border-left: 5px solid var(--accent-color);
+            padding-left: 15px;
+            margin: 40px 0 20px;
+        }
+
+        @media (max-width: 600px) {
+            .options { grid-template-columns: 1fr; }
+            .container { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>四年级信息技术期末大挑战</h1>
+        <p class="subtitle">配套课件内容 · 15 课全覆盖 · 30 道精选题目</p>
+    </header>
+
+    <div class="quiz-info">
+        <span>题目总数：30 道</span>
+        <span>满分：100 分</span>
+    </div>
+
+    <form id="quizForm">
+        <!-- 一、单选题 -->
+        <h2 class="section-header">一、单选题 (每题 4 分，共 60 分)</h2>
+        
+        <div class="question-group" data-answer="C">
+            <span class="question-title">1. 数据有丰富多彩的多种表示形式，以下不属于数据表示形式的是？</span>
+            <div class="options">
+                <label><input type="radio" name="q1" value="A"> <span class="option-label">A. 汉字</span></label>
+                <label><input type="radio" name="q1" value="B"> <span class="option-label">B. 图片</span></label>
+                <label><input type="radio" name="q1" value="C"> <span class="option-label">C. 课桌</span></label>
+                <label><input type="radio" name="q1" value="D"> <span class="option-label">D. 编码</span></label>
+            </div>
+            <p class="explanation">解析：课桌是具体的实物对象，不是数据的表现形式。 (期末调研题)</p>
+        </div>
+
+        <div class="question-group" data-answer="D">
+            <span class="question-title">2. 古代战争期间传递信息的重要通信方式是？</span>
+            <div class="options">
+                <label><input type="radio" name="q2" value="A"> <span class="option-label">A. 发送电子邮件</span></label>
+                <label><input type="radio" name="q2" value="B"> <span class="option-label">B. 发送电报</span></label>
+                <label><input type="radio" name="q2" value="C"> <span class="option-label">C. 拨打电话</span></label>
+                <label><input type="radio" name="q2" value="D"> <span class="option-label">D. 烽火传军情</span></label>
+            </div>
+            <p class="explanation">解析：古代使用烽火狼烟来传递军情。 (期末调研题)</p>
+        </div>
+
+        <div class="question-group" data-answer="B">
+            <span class="question-title">3. 以下道路编码中，代表省道的是？</span>
+            <div class="options">
+                <label><input type="radio" name="q3" value="A"> <span class="option-label">A. G204</span></label>
+                <label><input type="radio" name="q3" value="B"> <span class="option-label">B. S211</span></label>
+                <label><input type="radio" name="q3" value="C"> <span class="option-label">C. X108</span></label>
+                <label><input type="radio" name="q3" value="D"> <span class="option-label">D. Z022</span></label>
+            </div>
+            <p class="explanation">解析：G代表国道(Guo)，S代表省道(Sheng)。 (期末调研题)</p>
+        </div>
+
+        <div class="question-group" data-answer="D">
+            <span class="question-title">4. 下面哪种情况可能导致二维码扫描不出？</span>
+            <div class="options">
+                <label><input type="radio" name="q4" value="A"> <span class="option-label">A. 光线充足</span></label>
+                <label><input type="radio" name="q4" value="B"> <span class="option-label">B. 手机电量满</span></label>
+                <label><input type="radio" name="q4" value="C"> <span class="option-label">C. 距离适中</span></label>
+                <label><input type="radio" name="q4" value="D"> <span class="option-label">D. 二维码严重破损</span></label>
+            </div>
+            <p class="explanation">解析：虽然二维码有纠错能力，但严重破损或模糊会无法识别。 (期末调研题)</p>
+        </div>
+
+        <div class="question-group" data-answer="A">
+            <span class="question-title">5. 以下不是编码特点的是？</span>
+            <div class="options">
+                <label><input type="radio" name="q5" value="A"> <span class="option-label">A. 具有随机性</span></label>
+                <label><input type="radio" name="q5" value="B"> <span class="option-label">B. 有完整的编码规则</span></label>
+                <label><input type="radio" name="q5" value="C"> <span class="option-label">C. 编码可以被解读</span></label>
+                <label><input type="radio" name="q5" value="D"> <span class="option-label">D. 具有唯一性</span></label>
+            </div>
+            <p class="explanation">解析：编码必须遵循规则，不能是随机的。 (期末调研题)</p>
+        </div>
+
+        <div class="question-group" data-answer="C">
+            <span class="question-title">6. 古代使用“烽火”传递敌情，这属于什么？</span>
+            <div class="options">
+                <label><input type="radio" name="q6" value="A"> <span class="option-label">A. 现代通信</span></label>
+                <label><input type="radio" name="q6" value="B"> <span class="option-label">B. 数字化转换</span></label>
+                <label><input type="radio" name="q6" value="C"> <span class="option-label">C. 早期编码</span></label>
+                <label><input type="radio" name="q6" value="D"> <span class="option-label">D. 垃圾信息</span></label>
+            </div>
+            <p class="explanation">解析：烽火是建立信号与信息之间对应关系的早期形式。 (第6课)</p>
+        </div>
+
+        <div class="question-group" data-answer="D">
+            <span class="question-title">7. 每个同学在学校都有一个唯一的号码，这叫什么？</span>
+            <div class="options">
+                <label><input type="radio" name="q7" value="A"> <span class="option-label">A. 姓名</span></label>
+                <label><input type="radio" name="q7" value="B"> <span class="option-label">B. 绰号</span></label>
+                <label><input type="radio" name="q7" value="C"> <span class="option-label">C. 密码</span></label>
+                <label><input type="radio" name="q7" value="D"> <span class="option-label">D. 学号</span></label>
+            </div>
+            <p class="explanation">解析：学号是学校管理中常见的数字编码。 (第7课)</p>
+        </div>
+
+        <div class="question-group" data-answer="B">
+            <span class="question-title">8. 身份证号码的前 6 位代表什么信息？</span>
+            <div class="options">
+                <label><input type="radio" name="q8" value="A"> <span class="option-label">A. 出生日期</span></label>
+                <label><input type="radio" name="q8" value="B"> <span class="option-label">B. 地址码</span></label>
+                <label><input type="radio" name="q8" value="C"> <span class="option-label">C. 顺序码</span></label>
+                <label><input type="radio" name="q8" value="D"> <span class="option-label">D. 性别码</span></label>
+            </div>
+            <p class="explanation">解析：前6位代表行政区划代码（地址码）。 (第8课)</p>
+        </div>
+
+        <div class="question-group" data-answer="C">
+            <span class="question-title">9. 二维码比条形码更先进，主要是因为？</span>
+            <div class="options">
+                <label><input type="radio" name="q9" value="A"> <span class="option-label">A. 更好看</span></label>
+                <label><input type="radio" name="q9" value="B"> <span class="option-label">B. 颜色更多</span></label>
+                <label><input type="radio" name="q9" value="C"> <span class="option-label">C. 存储量大且有纠错力</span></label>
+                <label><input type="radio" name="q9" value="D"> <span class="option-label">D. 扫得更慢</span></label>
+            </div>
+            <p class="explanation">解析：二维码不仅信息容量大，还有一定的破损修复能力。 (第9课)</p>
+        </div>
+
+        <div class="question-group" data-answer="A">
+            <span class="question-title">10. 身份证号码最后一位如果是“X”，代表什么数字？</span>
+            <div class="options">
+                <label><input type="radio" name="q10" value="A"> <span class="option-label">A. 10</span></label>
+                <label><input type="radio" name="q10" value="B"> <span class="option-label">B. 0</span></label>
+                <label><input type="radio" name="q10" value="C"> <span class="option-label">C. 1</span></label>
+                <label><input type="radio" name="q10" value="D"> <span class="option-label">D. 20</span></label>
+            </div>
+            <p class="explanation">解析：最后一位是校验位，计算结果为10时用罗马数字X表示。 (第10课)</p>
+        </div>
+
+        <div class="question-group" data-answer="B">
+            <span class="question-title">11. 莫尔斯电码中，“点”和“划”的组合可以代表？</span>
+            <div class="options">
+                <label><input type="radio" name="q11" value="A"> <span class="option-label">A. 只有数字</span></label>
+                <label><input type="radio" name="q11" value="B"> <span class="option-label">B. 字母和数字</span></label>
+                <label><input type="radio" name="q11" value="C"> <span class="option-label">C. 只有颜色</span></label>
+                <label><input type="radio" name="q11" value="D"> <span class="option-label">D. 电影视频</span></label>
+            </div>
+            <p class="explanation">解析：莫尔斯电码可以编码26个英文字母和10个数字。 (第11课)</p>
+        </div>
+
+        <div class="question-group" data-answer="C">
+            <span class="question-title">12. 在黑白位图数字化中，如果用 0 表示白色，1 表示黑色，那么“0101”代表？</span>
+            <div class="options">
+                <label><input type="radio" name="q12" value="A"> <span class="option-label">A. 黑白黑白</span></label>
+                <label><input type="radio" name="q12" value="B"> <span class="option-label">B. 全白</span></label>
+                <label><input type="radio" name="q12" value="C"> <span class="option-label">C. 白黑白黑</span></label>
+                <label><input type="radio" name="q12" value="D"> <span class="option-label">D. 全黑</span></label>
+            </div>
+            <p class="explanation">解析：0-白，1-黑，所以 0101 是白黑白黑。 (第12课)</p>
+        </div>
+
+        <div class="question-group" data-answer="A">
+            <span class="question-title">13. 彩色屏幕显示的 RGB 三原色是指？</span>
+            <div class="options">
+                <label><input type="radio" name="q13" value="A"> <span class="option-label">A. 红、绿、蓝</span></label>
+                <label><input type="radio" name="q13" value="B"> <span class="option-label">B. 红、黄、蓝</span></label>
+                <label><input type="radio" name="q13" value="C"> <span class="option-label">C. 黑、白、灰</span></label>
+                <label><input type="radio" name="q13" value="D"> <span class="option-label">D. 橙、紫、绿</span></label>
+            </div>
+            <p class="explanation">解析：RGB 分别代表 Red（红）、Green（绿）、Blue（蓝）。 (第13课)</p>
+        </div>
+
+        <div class="question-group" data-answer="B">
+            <span class="question-title">14. 如果我们定义编码 1 代表“向前走”，2 代表“向后退”，那么指令“121”的意思是？</span>
+            <div class="options">
+                <label><input type="radio" name="q14" value="A"> <span class="option-label">A. 走三步</span></label>
+                <label><input type="radio" name="q14" value="B"> <span class="option-label">B. 前进、后退、前进</span></label>
+                <label><input type="radio" name="q14" value="C"> <span class="option-label">C. 后退、前进、后退</span></label>
+                <label><input type="radio" name="q14" value="D"> <span class="option-label">D. 停在原地</span></label>
+            </div>
+            <p class="explanation">解析：按照定义的规则顺序对应即可。 (第14课)</p>
+        </div>
+
+        <div class="question-group" data-answer="D">
+            <span class="question-title">15. 自定义编码时，最重要的原则是？</span>
+            <div class="options">
+                <label><input type="radio" name="q15" value="A"> <span class="option-label">A. 必须用很长的数字</span></label>
+                <label><input type="radio" name="q15" value="B"> <span class="option-label">B. 只有自己能看懂</span></label>
+                <label><input type="radio" name="q15" value="C"> <span class="option-label">C. 越复杂越好</span></label>
+                <label><input type="radio" name="q15" value="D"> <span class="option-label">D. 规则简单且不产生歧义</span></label>
+            </div>
+            <p class="explanation">解析：编码是为了方便沟通和管理，所以必须清晰准确。 (第15课)</p>
+        </div>
+
+        <!-- 二、判断题 -->
+        <h2 class="section-header">二、判断题 (每题 2.6 分，共 40 分)</h2>
+
+        <div class="question-group" data-answer="T">
+            <span class="question-title">16. 数据无处不在，并且在我们的日常生活中起着非常重要的作用。</span>
+            <div class="tf-options">
+                <label><input type="radio" name="q16" value="T"> <span class="option-label">正确</span></label>
+                <label><input type="radio" name="q16" value="F"> <span class="option-label">错误</span></label>
+            </div>
+            <p class="explanation">解析：数据是描述客观事物的符号，确实无处不在。 (期末调研题)</p>
+        </div>
+
+        <div class="question-group" data-answer="F">
+            <span class="question-title">17. 小学生的主要任务是学习，不需要辨识网络信息真假。</span>
+            <div class="tf-options">
+                <label><input type="radio" name="q17" value="T"> <span class="option-label">正确</span></label>
+                <label><input type="radio" name="q17" value="F"> <span class="option-label">错误</span></label>
+            </div>
+            <p class="explanation">解析：网络信息良莠不齐，小学生也必须具备辨别真假的能力。 (期末调研题)</p>
+        </div>
+
+        <div class="question-group" data-answer="T">
+            <span class="question-title">18. 编码让信息以数字化形式呈现，是关联真实世界和数字世界的重要基础。</span>
+            <div class="tf-options">
+                <label><input type="radio" name="q18" value="T"> <span class="option-label">正确</span></label>
+                <label><input type="radio" name="q18" value="F"> <span class="option-label">错误</span></label>
+            </div>
+            <p class="explanation">解析：编码是连接物理世界与数字世界的桥梁。 (期末调研题)</p>
+        </div>
+
+        <div class="question-group" data-answer="F">
+            <span class="question-title">19. 黑白图片可以用数字编码的形式来编码，彩色的不可以。</span>
+            <div class="tf-options">
+                <label><input type="radio" name="q19" value="T"> <span class="option-label">正确</span></label>
+                <label><input type="radio" name="q19" value="F"> <span class="option-label">错误</span></label>
+            </div>
+            <p class="explanation">解析：彩色图片也可以通过RGB等编码方式进行数字化。 (期末调研题)</p>
+        </div>
+
+        <div class="question-group" data-answer="F">
+            <span class="question-title">20. 编码长度越长，所包含信息量越少。</span>
+            <div class="tf-options">
+                <label><input type="radio" name="q20" value="T"> <span class="option-label">正确</span></label>
+                <label><input type="radio" name="q20" value="F"> <span class="option-label">错误</span></label>
+            </div>
+            <p class="explanation">解析：通常编码越长，能承载的信息量越大（如位数越多，组合越多）。 (期末调研题)</p>
+        </div>
+
+        <div class="question-group" data-answer="F">
+            <span class="question-title">21. 结绳记事是现代计算机最先进的编码方式。</span>
+            <div class="tf-options">
+                <label><input type="radio" name="q21" value="T"> <span class="option-label">正确</span></label>
+                <label><input type="radio" name="q21" value="F"> <span class="option-label">错误</span></label>
+            </div>
+            <p class="explanation">解析：结绳记事是古代原始的记录方式。</p>
+        </div>
+
+        <div class="question-group" data-answer="T">
+            <span class="question-title">22. 生活中很多地方都用到了数字编码，比如邮政编码。</span>
+            <div class="tf-options">
+                <label><input type="radio" name="q22" value="T"> <span class="option-label">正确</span></label>
+                <label><input type="radio" name="q22" value="F"> <span class="option-label">错误</span></label>
+            </div>
+        </div>
+
+        <div class="question-group" data-answer="T">
+            <span class="question-title">23. 编码的唯一性是指一个编码在特定系统内只对应一个事物。</span>
+            <div class="tf-options">
+                <label><input type="radio" name="q23" value="T"> <span class="option-label">正确</span></label>
+                <label><input type="radio" name="q23" value="F"> <span class="option-label">错误</span></label>
+            </div>
+        </div>
+
+        <div class="question-group" data-answer="F">
+            <span class="question-title">24. 所有的二维码都是安全的，我们可以随便扫。</span>
+            <div class="tf-options">
+                <label><input type="radio" name="q24" value="T"> <span class="option-label">正确</span></label>
+                <label><input type="radio" name="q24" value="F"> <span class="option-label">错误</span></label>
+            </div>
+            <p class="explanation">解析：二维码可能包含病毒或诈骗链接，不能随便扫。</p>
+        </div>
+
+        <div class="question-group" data-answer="T">
+            <span class="question-title">25. 校验码的作用是帮助我们发现数据在录入过程中是否出现了错误。</span>
+            <div class="tf-options">
+                <label><input type="radio" name="q25" value="T"> <span class="option-label">正确</span></label>
+                <label><input type="radio" name="q25" value="F"> <span class="option-label">错误</span></label>
+            </div>
+        </div>
+
+        <div class="question-group" data-answer="F">
+            <span class="question-title">26. 莫尔斯电码中的“划”比“点”发送的时间要短。</span>
+            <div class="tf-options">
+                <label><input type="radio" name="q26" value="T"> <span class="option-label">正确</span></label>
+                <label><input type="radio" name="q26" value="F"> <span class="option-label">错误</span></label>
+            </div>
+            <p class="explanation">解析：“划”的长短通常是“点”的三倍。</p>
+        </div>
+
+        <div class="question-group" data-answer="T">
+            <span class="question-title">27. 计算机世界的所有信息最终都可以转换成由 0 和 1 组成的数字。</span>
+            <div class="tf-options">
+                <label><input type="radio" name="q27" value="T"> <span class="option-label">正确</span></label>
+                <label><input type="radio" name="q27" value="F"> <span class="option-label">错误</span></label>
+            </div>
+        </div>
+
+        <div class="question-group" data-answer="F">
+            <span class="question-title">28. 像素越多，图片占用的空间越小，图片也越模糊。</span>
+            <div class="tf-options">
+                <label><input type="radio" name="q28" value="T"> <span class="option-label">正确</span></label>
+                <label><input type="radio" name="q28" value="F"> <span class="option-label">错误</span></label>
+            </div>
+            <p class="explanation">解析：像素越多，图片越清晰，占用空间通常也越大。</p>
+        </div>
+
+        <div class="question-group" data-answer="T">
+            <span class="question-title">29. 动作也可以编码，这在舞蹈记录和机器人控制中很有用。</span>
+            <div class="tf-options">
+                <label><input type="radio" name="q29" value="T"> <span class="option-label">正确</span></label>
+                <label><input type="radio" name="q29" value="F"> <span class="option-label">错误</span></label>
+            </div>
+        </div>
+
+        <div class="question-group" data-answer="T">
+            <span class="question-title">30. 只要双方商量好规则，任何事物都可以进行自定义编码。</span>
+            <div class="tf-options">
+                <label><input type="radio" name="q30" value="T"> <span class="option-label">正确</span></label>
+                <label><input type="radio" name="q30" value="F"> <span class="option-label">错误</span></label>
+            </div>
+        </div>
+
+        <button type="button" class="btn-submit" onclick="checkAnswers()">提交大挑战</button>
+    </form>
+
+    <div id="result" class="result-msg"></div>
+
+    <div style="text-align: center;">
+        <a href="四年级复习.html" class="nav-link">← 返回复习专题页面</a>
+    </div>
+</div>
+
+<script>
+    function checkAnswers() {
+        const form = document.getElementById('quizForm');
+        const questions = document.querySelectorAll('.question-group');
+        let score = 0;
+        let unanswered = 0;
+
+        questions.forEach((q, index) => {
+            const qName = 'q' + (index + 1);
+            const selected = form.querySelector(`input[name="${qName}"]:checked`);
+            
+            if (!selected) {
+                unanswered++;
+            } else if (selected.value === q.getAttribute('data-answer')) {
+                if (index < 15) {
+                    score += 4; // 单选题 4分
+                } else {
+                    score += 2.67; // 判断题 约2.6分，凑满分
+                }
+            }
+        });
+
+        if (unanswered > 0) {
+            alert('你还有 ' + unanswered + ' 道题没有做完哦！加油！');
+            return;
+        }
+
+        // 最终得分取整
+        const finalScore = Math.min(100, Math.round(score));
+        
+        const resultDiv = document.getElementById('result');
+        resultDiv.style.display = 'block';
+        
+        let comment = '';
+        if (finalScore === 100) comment = '🎉 完美！你是信息技术小达人！';
+        else if (finalScore >= 80) comment = '🌟 优秀！知识掌握得很扎实！';
+        else if (finalScore >= 60) comment = '👍 及格！继续加油复习哦！';
+        else comment = '📚 还需要多看复习资料，再接再厉！';
+
+        resultDiv.innerHTML = `你的得分是：<strong>${finalScore}</strong> 分<br>${comment}`;
+        resultDiv.className = 'result-msg ' + (finalScore >= 60 ? 'success' : 'error');
+
+        document.querySelector('.container').classList.add('show-answer');
+        
+        // 滚动到结果
+        resultDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
